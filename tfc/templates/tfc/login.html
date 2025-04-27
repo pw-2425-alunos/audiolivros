@@ -1,0 +1,29 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="login-page">
+    <div class="form-container">
+        <h3>Login</h3>
+
+        {% if error %}
+            <p class="error-message">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <label for="nome">Nome da Família:</label>
+            <input type="text" id="nome" name="nome" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <button type="submit">Entrar</button>
+        </form>
+        <p class="signup-prompt">Não tem uma conta? <a href="{% url 'tfc:registo' %}">Criar Conta</a></p>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="edit-membro-page">
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1>Editar Perfil do Membro</h1>
+
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" name="nome" value="{{ membro.nome }}" required>
+
+        <label for="idade">Idade:</label>
+        <input type="number" id="idade" name="idade" value="{{ membro.idade }}" required>
+
+        <label for="apresentacao_audio">Apresentação:</label>
+        <input type="file" id="apresentacao_audio" name="apresentacao_audio" accept="audio/*">
+
+        <label for="foto">Foto:</label>
+        <input type="file" id="foto" name="foto" accept="image/*">
+
+        <button type="submit">Salvar Alterações</button>
+
+        <a href="{% url 'tfc:perfilMembro' membro.id %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "tfc/layout.html" %}
+
+{% block title %}{{ audiolivro.titulo }}{% endblock %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
+
+    <div class="detalhes-audiolivro">
+        <div class="audio-player-card">
+            <div class="card-detalhes shadow-sm">
+                <img src="{{ audiolivro.capa.url }}" class="card-img-top" alt="Capa de {{ audiolivro.titulo }}">
+                <div class="card-body">
+                    <p><strong>Autor:</strong> {{ audiolivro.autor }}</p>
+                    <p><strong>Gravado por:</strong> {{ audiolivro.gravado_por.nome|default:"Desconhecido" }}</p>
+
+            <!-- Player de áudio -->
+                    {% if audiolivro.audio %}
+                        <audio controls class="audio-player">
+                            <source src="{{ audiolivro.audio.url }}" type="audio/mpeg">
+                            O seu navegador não suporta a reprodução de áudio.
+                        </audio>
+                    {% else %}
+                        <p><em>Sem áudio disponível</em></p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+
+        <div class="comentarios-container">
+            <h3>Comentários</h3>
+
+            <!-- Formulário para Criar Comentário -->
+            <form id="comentarioForm" action="{% url 'tfc:criarComentarioInline' audiolivro_id=audiolivro.id %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <textarea name="texto" class="comentario-texto" placeholder="Escreva o seu comentário..." rows="3"></textarea>
+
+                <div class="botoes-gravacao">
+                    <button type="button" id="btnGravar" class="botao-gravar">🎤 Gravar</button>
+                    <button type="button" id="btnParar" class="botao-parar" disabled>⏹️ Parar</button>
+                </div>
+
+                <button type="submit" class="botao-publicar">Publicar</button>
+            </form>
+
+            <!-- Comentários Publicados -->
+            <div class="comentarios">
+                {% for comment in comentario %}
+                    <div class="comentario">
+                        <p class="autor">{{ comment.autor.nome }}</p>
+                        <p>{{ comment.texto }}</p>
+                        {% if comment.audio %}
+                            <audio controls>
+                                <source src="{{ comment.audio.url }}" type="audio/mpeg">
+                                O seu navegador não suporta a reprodução de áudio.
+                            </audio>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para Gravação de Áudio -->
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        const btnGravar = document.getElementById('btnGravar');
+        const btnParar = document.getElementById('btnParar');
+        const audioInput = document.getElementById('audioComentario');
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+
+                mediaRecorder.addEventListener("stop", () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                    audioChunks = [];
+                    const file = new File([audioBlob], "comentario_audio.mp3", { type: 'audio/mpeg' });
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    audioInput.files = dataTransfer.files;
+                });
+
+                btnGravar.addEventListener("click", () => {
+                    mediaRecorder.start();
+                    btnGravar.disabled = true;
+                    btnParar.disabled = false;
+                });
+
+                btnParar.addEventListener("click", () => {
+                    mediaRecorder.stop();
+                    btnGravar.disabled = false;
+                    btnParar.disabled = true;
+                });
+            })
+            .catch(error => {
+                console.error("Erro ao acessar o microfone: ", error);
+                btnGravar.disabled = true;
+                btnParar.disabled = true;
+            });
+    </script>
+{% endblock %}

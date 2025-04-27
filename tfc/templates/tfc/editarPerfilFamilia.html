@@ -1,0 +1,36 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block content %}
+<div class="edit-familia-page">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1>Editar Perfil da Família</h1>
+
+        <label>
+            <span>Nome:</span>
+            <input type="text" name="nome" value="{{ familia.nome }}">
+        </label>
+
+        <label>
+            <span>Email:</span>
+            <input type="email" name="email" value="{{ familia.email }}">
+        </label>
+
+        <label>
+            <span>Foto:</span>
+            <input type="file" name="foto">
+        </label>
+
+        <label>
+            <span>Apresentação da Família (Áudio):</span>
+            <input type="file" name="apresentacao_familia">
+        </label>
+
+        <button type="submit">Salvar Alterações</button>
+
+        <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

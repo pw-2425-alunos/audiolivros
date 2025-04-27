@@ -1,0 +1,12 @@
+{% extends 'tfc/layout.html' %}
+
+{% block content %}
+  <h2>Remover Membro</h2>
+  <p>Tem certeza de que deseja remover <strong>{{ membro.nome }}</strong> da família?</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Sim, remover</button>
+    <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
+  </form>
+{% endblock %}

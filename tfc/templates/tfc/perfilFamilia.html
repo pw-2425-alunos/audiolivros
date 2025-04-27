@@ -1,0 +1,64 @@
+{% extends 'tfc/layout.html' %}
+{% load static %}
+
+{% block title %}Familia{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'tfc/perfil.css' %}">
+
+<div class="perfil-familia-container">
+    <h1 class="titulo-familia">Família {{ familia.nome }}</h1>
+
+    <h2 class="secao-titulo">Membros da Família</h2>
+    <div class="membros-container">
+        {% for membro in utilizadores %}
+        <a href="{% url 'tfc:perfilMembro' membro.id %}" class="membro-card">
+            {% if membro.foto %}
+                <img src="{{ membro.foto.url }}" alt="Foto de {{ membro.nome }}" class="membro-foto">
+            {% else %}
+                <div class="sem-foto">Sem Foto</div>
+            {% endif %}
+            <p><strong>Nome:</strong> {{ membro.nome }}</p>
+            <p><strong>Idade:</strong> {{ membro.idade }}</p>
+        </a>
+        {% empty %}
+        <p>Nenhum membro nesta família.</p>
+        {% endfor %}
+    </div>
+
+    <div class="acoes">
+        <a href="{% url 'tfc:editarPerfilFamilia' %}" class="botao-acao">Editar Perfil Família</a>
+        <a href="{% url 'tfc:addMembro' familia.id %}" class="botao-acao">Adicionar Membro</a>
+    </div>
+
+    <h2 class="secao-titulo">Audiolivros Gravados</h2>
+    <div class="livros-container">
+        {% for audio in audiolivros %}
+        <div class="livro-container">
+            <div class="livro-card">
+                <a href="{% url 'tfc:detalhe_audiolivro' audio.id %}" class="livro-card-link">
+                    {% if audio.capa %}
+                    <img src="{{ audio.capa.url }}" alt="Capa de {{ audio.titulo }}" class="livro-capa">
+                    {% endif %}
+                    <h3>{{ audio.titulo }}</h3>
+                    <p>{{ audio.descricao|truncatewords:15 }}</p>
+                </a>
+
+                <div class="livro-card-actions">
+                    <a href="{% url 'tfc:editar_audiolivro' audio.id %}" class="botao-acao">Editar</a>
+
+                    {% if not audio.publicado %}
+                    <form method="post" action="{% url 'tfc:publicar_audiolivro' audio.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="botao-acao">Publicar</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Esta família ainda não gravou audiolivros.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Registar{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="register-page">
+    <div class="form-container">
+        <h3>Criar Conta</h3>
+
+        {% if mensagem %}
+            <p class="error-message">{{ mensagem }}</p>
+        {% endif %}
+
+        <form action="{% url 'tfc:registo' %}" method="post" class="register-form" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="text" name="nome" placeholder="Nome da Família" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <input type="password" name="password" placeholder="Senha" required>
+
+            <label for="foto">Foto da Família:</label>
+            <input type="file" name="foto" accept="image/*">
+
+            <label for="apresentacao_familia">Apresentação (opcional):</label>
+            <input type="file" name="apresentacao_familia" accept="audio/*, video/*, .pdf, .doc, .docx">
+
+            <input type="submit" value="Criar Conta">
+        </form>
+
+        <p class="login-prompt">Já tem uma conta? <a href="{% url 'tfc:login' %}">Entrar</a></p>
+    </div>
+</div>
+{% endblock %}

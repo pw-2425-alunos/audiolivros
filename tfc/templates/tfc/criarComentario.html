@@ -1,0 +1,35 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Adicionar Comentário{% endblock %}
+
+{% block content %}
+
+    <style>
+        h3, form, table, input {
+            color: black;
+        }
+
+        .links {
+            color: blue;
+            text-decoration: none;
+            display: block;
+            font-weight: bold;
+        }
+
+        .errorlist {
+            display:none;
+        }
+    </style>
+    <h3>Novo Comentário</h3>
+
+    <form action="" method="post" enctype='multipart/form-data'>
+
+      {% csrf_token %}
+      <table>
+          {{ form }}
+      </table>
+      <input type="submit" value="Criar Comentário">
+
+    </form>
+
+{% endblock %}

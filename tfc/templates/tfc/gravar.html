@@ -1,0 +1,129 @@
+{% extends "tfc/layout.html" %}
+
+{% block title %}Gravar Audiolivro{% endblock %}
+
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
+
+    <div class="contentorGravar">
+        <h1>Gravar Audiolivro</h1>
+
+        <!-- Botões para controlar a gravação -->
+        <button id="start">Iniciar Gravação</button>
+        <button id="pause" disabled>Pausar Gravação</button>
+        <button id="stop" disabled>Parar Gravação</button>
+
+        <!-- Player de áudio para reprodução da gravação -->
+        <audio id="player" controls></audio>
+
+        <br>
+        <button id="goToCriar">Criar Audiolivro</button>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('start');
+        const pauseButton = document.getElementById('pause');
+        const stopButton = document.getElementById('stop');
+        const audioPlayer = document.getElementById('player');
+        const goToCriarButton = document.getElementById('goToCriar');
+
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordedAudioBlob;
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioChunks = [];
+                    const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                    audioPlayer.src = audioUrl;
+                    goToCriarButton.disabled = false;
+                };
+
+                mediaRecorder.onpause = () => {
+                    console.log("Gravação pausada.");
+                };
+
+                mediaRecorder.onresume = () => {
+                    console.log("Gravação retomada.");
+                };
+            })
+            .catch((error) => {
+                console.error('Erro ao acessar o microfone:', error);
+                alert('É necessário permitir o acesso ao microfone para gravar áudio.');
+            });
+
+        startButton.addEventListener('click', () => {
+            if (mediaRecorder) {
+                mediaRecorder.start();
+                startButton.disabled = true;
+                pauseButton.disabled = false;
+                stopButton.disabled = false;
+                startButton.textContent = 'Gravando...';
+                console.log('Gravação iniciada...');
+            }
+        });
+
+        pauseButton.addEventListener('click', () => {
+            if (mediaRecorder.state === 'recording') {
+                mediaRecorder.pause();
+                pauseButton.textContent = 'Retomar Gravação';
+                console.log('Gravação pausada.');
+            } else if (mediaRecorder.state === 'paused') {
+                mediaRecorder.resume();
+                pauseButton.textContent = 'Pausar Gravação';
+                console.log('Gravação retomada.');
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+                startButton.disabled = false;
+                pauseButton.disabled = true;
+                stopButton.disabled = true;
+                startButton.textContent = 'Iniciar Nova Gravação';
+                pauseButton.textContent = 'Pausar Gravação';
+                console.log('Gravação parada.');
+            }
+        });
+
+        goToCriarButton.addEventListener('click', () => {
+            if (!recordedAudioBlob) {
+                window.location.href = "{% url 'tfc:criarAudiolivro' %}";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('audio', recordedAudioBlob, 'gravacao.webm');
+
+            fetch("{% url 'tfc:upload_audio' %}", {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = "{% url 'tfc:criarAudiolivro' %}?audio=" + encodeURIComponent(data.audio_url);
+                } else {
+                    alert('Erro ao fazer upload do áudio.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                alert('Erro ao enviar o áudio.');
+            });
+        });
+    </script>
+{% endblock %}

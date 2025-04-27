@@ -1,0 +1,30 @@
+{% extends 'tfc/layout.html' %}
+
+{% block title %}Criar Audiolivro{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container">
+    <div class="form-wrapper">
+        <h2 class="title">Novo Audiolivro</h2>
+
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="error-message">
+                    {{ field.errors|first }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-btn">Criar Audiolivro</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

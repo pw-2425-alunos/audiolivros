@@ -1,0 +1,20 @@
+{% extends 'tfc/layout.html' %}
+{% load static %}
+
+{% block title %}Editar Audiolivro{% endblock %}
+
+{% block content %}
+<div class="edit-audiolivro-page">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1>Editar Audiolivro: {{ audiolivro.titulo }}</h1>
+
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+
+        <button type="submit">Guardar Alterações</button>
+        <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
