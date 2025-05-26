@@ -2,35 +2,36 @@ import os
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import AudioLivro, Membro, Familia, Comentario
+from .models import AudioLivro, Membro, Familia, Comentario, Like, Bookmark
 from .forms import AudioLivroForm, ComentarioForm
 from django.core.exceptions import ObjectDoesNotExist
-from django.conf import settings
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from collections import defaultdict
+from django.urls import reverse
+from django.core.files.base import ContentFile
+from urllib.request import urlopen
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
+
 
 @csrf_exempt
+
 def login_view(request):
-    if request.method == "POST":
-        nome = request.POST.get('nome')
-        password = request.POST.get('password')
+    if request.method == 'POST':
+        username = request.POST['nome']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
 
-        try:
-            familia = Familia.objects.get(nome=nome)
-        except ObjectDoesNotExist:
-            return render(request, 'tfc/login.html', {'error': 'Nome da família não encontrado'})
-
-        user = authenticate(request, username=familia.nome, password=password)
-        if user:
+        if user is not None:
             login(request, user)
             return redirect('tfc:biblioteca')
         else:
             return render(request, 'tfc/login.html', {'error': 'Credenciais inválidas'})
-
     return render(request, 'tfc/login.html')
+
 
 @csrf_exempt
 def registo_view(request):
@@ -45,6 +46,10 @@ def registo_view(request):
 
         if Familia.objects.filter(nome=nome).exists():
             context['error'] = 'Família já se encontra registada.'
+            return render(request, 'tfc/registo.html', context)
+
+        if Familia.objects.filter(email=email).exists():
+            context['error'] = 'Email já foi utilizado por outra conta.'
             return render(request, 'tfc/registo.html', context)
 
         familia = Familia.objects.create(
@@ -63,8 +68,13 @@ def logout_view(request):
     return redirect('tfc:login')
 
 @login_required
-def perfil_familia_view(request):
-    familia = get_object_or_404(Familia, nome=request.user.username)
+def perfil_familia_view(request, familia_id=None):
+
+    if familia_id:
+        familia = get_object_or_404(Familia, id=familia_id)
+    else:
+        familia = get_object_or_404(Familia, nome=request.user.username)
+
     utilizadores = Membro.objects.filter(familia=familia)
     audiolivros = AudioLivro.objects.filter(gravado_por=familia)
 
@@ -115,7 +125,7 @@ def editar_perfil_membro_view(request, membro_id):
             membro.foto = request.FILES["foto"]
 
         membro.save()
-        return redirect("tfc:perfilMembro", membro_id=membro.id)
+        return redirect("tfc:perfilFamilia")
 
     return render(request, "tfc/editarPerfilMembro.html", {"membro": membro})
 
@@ -153,47 +163,71 @@ def remover_membro_view(request, membro_id):
         messages.success(request, "Membro removido com sucesso.")
         return redirect("tfc:perfilFamilia")
 
-    return render(request, 'tfc/removerMembro.html')
+    return render(request, 'tfc/removerMembro.html', {'membro': membro})
 
 def biblioteca_view(request):
     query = request.GET.get('q', '')
     categoria = request.GET.get('categoria', '')
 
-    audiolivros = AudioLivro.objects.filter(publicado=True)
+    if query:
+        membro = Membro.objects.filter(nome__iexact=query).first()
+        if membro and membro.familia:
+            return redirect(f"{reverse('tfc:perfilFamilia')}?id={membro.familia.id}")
 
+    audiolivros = AudioLivro.objects.filter(publicado=True)
     if query:
         audiolivros = audiolivros.filter(titulo__icontains=query)
-
     if categoria:
         audiolivros = audiolivros.filter(categoria=categoria)
 
-    audiolivros_por_categoria = defaultdict(list)
-    for audio in audiolivros:
-        audiolivros_por_categoria[audio.categoria].append(audio)
-
-    categorias_ordenadas = sorted(audiolivros_por_categoria.keys())
-
-    audiolivros_por_categoria_ordenado = {
-        cat: audiolivros_por_categoria[cat] for cat in categorias_ordenadas
+    categorias_dict = defaultdict(list)
+    for a in audiolivros:
+        categorias_dict[a.categoria].append(a)
+    categorias_ordenadas = sorted(categorias_dict.keys())
+    audiolivros_por_categoria = {
+        cat: categorias_dict[cat] for cat in categorias_ordenadas
     }
+    categorias = [c[0] for c in AudioLivro.CATEGORIAS_CHOICES]
 
-    categorias = [cat[0] for cat in AudioLivro.CATEGORIAS_CHOICES]
+    continuar = []
+    if request.user.is_authenticated:
+        familia = Familia.objects.filter(nome=request.user.username).first()
+        if familia:
+            for bm in Bookmark.objects.filter(familia=familia):
+                dur = bm.audiolivro.duracao or 0
+                if bm.position and bm.position < dur - 1:
+                    continuar.append((bm.audiolivro, bm.position))
 
     context = {
-        'audiolivros_por_categoria': audiolivros_por_categoria_ordenado,
+        'query': query,
         'categorias': categorias,
         'categoria_selecionada': categoria,
-        'query': query,  # Para manter o valor da pesquisa no input
+        'audiolivros_por_categoria': audiolivros_por_categoria,
+        'continuar': continuar,
     }
-
     return render(request, "tfc/biblioteca.html", context)
 
-def detalhe_audiolivro_view(request, audiolivro_id):
-    audiolivro = get_object_or_404(AudioLivro, id=audiolivro_id)
-    comentario = Comentario.objects.filter(audio_livro=audiolivro)
 
-    context = {'audiolivro': audiolivro, 'comentario': comentario}
+def detalhe_audiolivro_view(request, audiolivro_id):
+
+    audiolivro = get_object_or_404(AudioLivro, id=audiolivro_id)
+    comentarios = Comentario.objects.filter(audio_livro=audiolivro)
+
+    liked = False
+    if request.user.is_authenticated:
+        familia = Familia.objects.filter(nome=request.user.username).first()
+        if familia:
+            liked = Like.objects.filter(familia=familia, audiolivro=audiolivro).exists()
+    like_count = Like.objects.filter(audiolivro=audiolivro).count()
+
+    context = {
+        'audiolivro': audiolivro,
+        'comentarios': comentarios,
+        'liked': liked,
+        'like_count': like_count,
+    }
     return render(request, "tfc/detalhe_audiolivro.html", context)
+
 
 @login_required
 def criarAudiolivro_view(request):
@@ -205,13 +239,18 @@ def criarAudiolivro_view(request):
             audiolivro = form.save(commit=False)
             audiolivro.publicado = False
             audiolivro.gravado_por = get_object_or_404(Familia, nome=request.user.username)
+
+            if audio_url and not request.FILES.get('audio'):
+                audio_filename = os.path.basename(audio_url)
+                response = urlopen(audio_url)
+                audiolivro.audio.save(audio_filename, ContentFile(response.read()), save=False)
+
             audiolivro.save()
             return redirect('tfc:perfilFamilia')
     else:
-        initial_data = {'audio': audio_url} if audio_url else {}
-        form = AudioLivroForm(initial=initial_data)
+        form = AudioLivroForm()
 
-    context = {'form': form}
+    context = {'form': form, 'audio_url': audio_url}
     return render(request, 'tfc/criarAudiolivro.html', context)
 
 
@@ -235,24 +274,28 @@ def gravar_view(request):
     return render(request, "tfc/gravar.html")
 
 
-@csrf_exempt
-def upload_audio_view(request):
-    if request.method == 'POST' and request.FILES.get('audio'):
-        audio_file = request.FILES['audio']
-        upload_path = os.path.join(settings.MEDIA_ROOT, 'uploads')
-        os.makedirs(upload_path, exist_ok=True)
-        file_path = os.path.join(upload_path, audio_file.name)
+@login_required
+def criarAudiolivroInline(request):
+    if request.method == "POST":
+        familia = get_object_or_404(Familia, nome=request.user.username)
 
-        # Salva o arquivo no sistema de arquivos
-        with open(file_path, 'wb+') as destination:
-            for chunk in audio_file.chunks():
-                destination.write(chunk)
+        novo_livro = AudioLivro(
+            gravado_por=familia,
+            publicado=False
+        )
 
-        # Monta a URL para o arquivo (assegure-se de que MEDIA_URL está configurado)
-        audio_url = os.path.join(settings.MEDIA_URL, 'uploads', audio_file.name)
-        return JsonResponse({'success': True, 'audio_url': audio_url})
+        if request.FILES.get('audio'):
+            novo_livro.audio = request.FILES.get('audio')
+        else:
+            messages.error(request, "É necessário gravar um áudio.")
+            return redirect('tfc:gravar')
 
-    return JsonResponse({'success': False})
+        novo_livro.save()
+        messages.success(request, "Gravação criada com sucesso! Complete agora os restantes detalhes.")
+
+        return redirect('tfc:editarAudiolivro', id=novo_livro.id)
+
+    return redirect('tfc:perfilFamilia')
 
 
 @login_required
@@ -307,9 +350,50 @@ def publicar_audiolivro_view(request, audiolivro_id):
 
     return redirect('tfc:perfilFamilia')
 
+def home_view(request):
+    return render(request, 'tfc/home.html')
+
+
+@login_required
+@require_POST
+def toggle_like(request, audiolivro_id):
+    familia = get_object_or_404(Familia, nome=request.user.username)
+    livro   = get_object_or_404(AudioLivro, id=audiolivro_id)
+
+    like, created = Like.objects.get_or_create(familia=familia, audiolivro=livro)
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    count = Like.objects.filter(audiolivro=livro).count()
+
+    return JsonResponse({'liked': liked, 'count': count})
 
 
 
+@login_required
+@require_http_methods(["GET"])
+def get_bookmark(request, audiolivro_id):
+    familia = get_object_or_404(Familia, nome=request.user.username)
+    try:
+        bm = Bookmark.objects.get(familia=familia, audiolivro_id=audiolivro_id)
+        return JsonResponse({'position': bm.position})
+    except Bookmark.DoesNotExist:
+        return JsonResponse({'position': 0.0})
 
+@login_required
+@require_http_methods(["POST"])
+def set_bookmark(request, audiolivro_id):
+    familia = get_object_or_404(Familia, nome=request.user.username)
+    try:
+        pos = float(request.POST.get('position', 0))
+    except (TypeError, ValueError):
+        return HttpResponseBadRequest("Posição inválida")
 
-
+    bm, created = Bookmark.objects.update_or_create(
+        familia=familia, audiolivro_id=audiolivro_id,
+        defaults={'position': pos}
+    )
+    return JsonResponse({'position': bm.position})

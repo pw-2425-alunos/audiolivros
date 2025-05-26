@@ -9,28 +9,28 @@
         <h1>Editar Perfil da Família</h1>
 
         <label>
-            <span>Nome:</span>
+            <span>Nome *</span>
             <input type="text" name="nome" value="{{ familia.nome }}">
         </label>
 
         <label>
-            <span>Email:</span>
+            <span>Email *</span>
             <input type="email" name="email" value="{{ familia.email }}">
         </label>
 
         <label>
-            <span>Foto:</span>
+            <span>Fotografia (opcional) </span>
             <input type="file" name="foto">
         </label>
 
         <label>
-            <span>Apresentação da Família (Áudio):</span>
+            <span>Apresentação da Família (Áudio) (opcional):</span>
             <input type="file" name="apresentacao_familia">
         </label>
 
-        <button type="submit">Salvar Alterações</button>
+        <button type="submit">Guardar Alterações</button>
 
-        <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
+        <a href="{% url 'tfc:perfilFamilia' familia.id %}">Cancelar</a>
     </form>
 </div>
 {% endblock %}

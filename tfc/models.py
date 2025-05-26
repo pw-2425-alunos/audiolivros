@@ -30,7 +30,6 @@ class AudioLivro(models.Model):
         ('Ação', 'Ação'),
         ('Fantasia', 'Fantasia'),
         ('Mistério', 'Mistério'),
-        ('Comédia', 'Comédia'),
         ('Fábula', 'Fábula'),
         ('História', 'História'),
         ('Conto de Fadas', 'Conto de Fadas'),
@@ -82,6 +81,7 @@ class AudioLivro(models.Model):
 class Comentario(models.Model):
     titulo = models.CharField(max_length=200)
     texto = models.TextField(null=True, blank=True)
+    desenho = models.ImageField(upload_to='desenhocomentario/', null=True, blank=True)
     audio = models.FileField(upload_to='comentarios/', null=True, blank=True)
     data = models.DateTimeField(auto_now_add=True)
     autor = models.ForeignKey(Familia, on_delete=models.CASCADE, related_name='comentarios')
@@ -89,3 +89,30 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentário de {self.autor.nome} no livro '{self.audio_livro.titulo}' em {self.data.strftime('%Y-%m-%d')}"
+
+
+class Like(models.Model):
+    familia = models.ForeignKey(Familia, on_delete=models.CASCADE, related_name='likes')
+    audiolivro = models.ForeignKey(AudioLivro, on_delete=models.CASCADE, related_name='likes')
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('familia', 'audiolivro')
+        ordering = ['-criado_em']
+
+    def __str__(self):
+        return f"{self.familia.nome} curtiu {self.audiolivro.titulo}"
+
+
+class Bookmark(models.Model):
+    familia     = models.ForeignKey(Familia, on_delete=models.CASCADE)
+    audiolivro  = models.ForeignKey(AudioLivro, on_delete=models.CASCADE)
+    position    = models.FloatField(help_text="Posição em segundos")
+    atualizado  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('familia', 'audiolivro')
+        ordering = ['-atualizado']
+
+    def __str__(self):
+        return f"{self.familia.nome} @ {self.position:.1f}s em {self.audiolivro.titulo}"

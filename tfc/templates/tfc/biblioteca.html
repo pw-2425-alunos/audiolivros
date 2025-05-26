@@ -10,17 +10,40 @@
 
         <form method="GET" action="{% url 'tfc:biblioteca' %}" class="filtro-pesquisa">
             <select name="categoria" onchange="this.form.submit()" class="form-select">
-                <option value="">Todas as categorias</option>
+                <option value="">Todas as Categorias</option>
                 {% for cat in categorias %}
                     <option value="{{ cat }}" {% if categoria_selecionada == cat %}selected{% endif %}>{{ cat }}</option>
                 {% endfor %}
             </select>
         </form>
 
+
+        {% if continuar %}
+            <section class="continuar-ouvindo mb-5">
+            <h2>Continuar a ouvir</h2>
+            <div class="row row-cols-1 row-cols-md-4 g-4">
+                {% for livro, pos in continuar %}
+                    <div class="col">
+                        <div class="card-biblioteca shadow-sm">
+                            <a href="{% url 'tfc:detalhe_audiolivro' livro.id %}" class="card-link">
+                                <img src="{{ livro.capa.url }}" class="card-img-top" alt="Capa de {{ livro.titulo }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ livro.titulo }}</h5>
+                                    <p class="card-text">Paraste em {{ pos|floatformat:0 }}s de {{ livro.duracao_formatada }}</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            </section>
+        {% endif %}
+
+
         <div class="categories-container">
             {% for categoria, audiolivros in audiolivros_por_categoria.items %}
                 <div class="categoria">
-                    <h2 class="categoria-titulo">{{ categoria }}</h2> <
+                    <h2 class="categoria-titulo">{{ categoria }}</h2>
                     <div class="row row-cols-1 row-cols-md-3 g-4">
                         {% for audio in audiolivros %}
                             <div class="col">
@@ -42,12 +65,12 @@
                                 </div>
                             </div>
                         {% empty %}
-                            <p>Nenhum audiolivro encontrado nesta categoria.</p>
+                            <p style="color: white;">Nenhum audiolivro encontrado nesta categoria.</p>
                         {% endfor %}
                     </div>
                 </div>
             {% empty %}
-                <p>Nenhum audiolivro encontrado.</p>
+                <p style="color: white;">Nenhum audiolivro encontrado.</p>
             {% endfor %}
         </div>
     </div>

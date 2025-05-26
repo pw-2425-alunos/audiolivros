@@ -1,12 +1,15 @@
 {% extends 'tfc/layout.html' %}
 
 {% block content %}
-  <h2>Remover Membro</h2>
-  <p>Tem certeza de que deseja remover <strong>{{ membro.nome }}</strong> da família?</p>
+  <div class="card" style="max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f8f9fa;">
+    <h2 style="margin-top: 0;">Remover Membro</h2>
+    <p>Tem a certeza que deseja remover o membro <strong>{{ membro.nome }}</strong> da família?</p>
 
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit">Sim, remover</button>
-    <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
-  </form>
+    <form method="post" style="margin-top: 20px;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Sim</button>
+      <a href="{% url 'tfc:perfilFamilia' %}" class="btn btn-secondary" style="margin-left: 10px;">Cancelar</a>
+    </form>
+  </div>
 {% endblock %}
+

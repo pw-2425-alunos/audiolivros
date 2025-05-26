@@ -22,7 +22,7 @@
             <p><strong>Idade:</strong> {{ membro.idade }}</p>
         </a>
         {% empty %}
-        <p>Nenhum membro nesta família.</p>
+        <p style="color: white;">Nenhum membro nesta família.</p>
         {% endfor %}
     </div>
 
@@ -41,7 +41,7 @@
                     <img src="{{ audio.capa.url }}" alt="Capa de {{ audio.titulo }}" class="livro-capa">
                     {% endif %}
                     <h3>{{ audio.titulo }}</h3>
-                    <p>{{ audio.descricao|truncatewords:15 }}</p>
+                    <p  style="color: white;">{{ audio.descricao|truncatewords:15 }}</p>
                 </a>
 
                 <div class="livro-card-actions">
@@ -57,7 +57,7 @@
             </div>
         </div>
         {% empty %}
-        <p>Esta família ainda não gravou audiolivros.</p>
+        <p style="color: white;">Esta família ainda não gravou audiolivros.</p>
         {% endfor %}
     </div>
 </div>

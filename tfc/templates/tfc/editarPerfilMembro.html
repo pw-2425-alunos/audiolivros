@@ -10,19 +10,19 @@
         {% csrf_token %}
         <h1>Editar Perfil do Membro</h1>
 
-        <label for="nome">Nome:</label>
+        <label for="nome">Nome * </label>
         <input type="text" id="nome" name="nome" value="{{ membro.nome }}" required>
 
-        <label for="idade">Idade:</label>
+        <label for="idade">Idade * </label>
         <input type="number" id="idade" name="idade" value="{{ membro.idade }}" required>
 
-        <label for="apresentacao_audio">Apresentação:</label>
+        <label for="apresentacao_audio">Apresentação (Áudio) (opcional)</label>
         <input type="file" id="apresentacao_audio" name="apresentacao_audio" accept="audio/*">
 
-        <label for="foto">Foto:</label>
+        <label for="foto">Fotografia (opcional) </label>
         <input type="file" id="foto" name="foto" accept="image/*">
 
-        <button type="submit">Salvar Alterações</button>
+        <button type="submit">Guardar Alterações</button>
 
         <a href="{% url 'tfc:perfilMembro' membro.id %}">Cancelar</a>
     </form>

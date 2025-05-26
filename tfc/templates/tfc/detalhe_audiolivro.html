@@ -3,107 +3,191 @@
 {% block title %}{{ audiolivro.titulo }}{% endblock %}
 
 {% block content %}
-    {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
-    <div class="detalhes-audiolivro">
-        <div class="audio-player-card">
-            <div class="card-detalhes shadow-sm">
-                <img src="{{ audiolivro.capa.url }}" class="card-img-top" alt="Capa de {{ audiolivro.titulo }}">
-                <div class="card-body">
-                    <p><strong>Autor:</strong> {{ audiolivro.autor }}</p>
-                    <p><strong>Gravado por:</strong> {{ audiolivro.gravado_por.nome|default:"Desconhecido" }}</p>
+<div class="detalhes-audiolivro">
+  <div class="audio-player-card">
+    <div class="card-detalhes shadow-sm">
+      <img src="{{ audiolivro.capa.url }}" class="card-img-top" alt="Capa de {{ audiolivro.titulo }}">
+      <div class="card-body">
+        <p><strong>Autor:</strong> {{ audiolivro.autor }}</p>
+        <p><strong>Gravado por:</strong> {{ audiolivro.gravado_por.nome|default:"Desconhecido" }}</p>
+        <p><strong>Resumo:</strong> {{ audiolivro.descricao }}</p>
+        {% if audiolivro.audio %}
+        <audio controls class="audio-player"
+            data-id="{{ audiolivro.id }}">
+            <source src="{{ audiolivro.audio.url }}" type="audio/mpeg">
+        </audio>
 
-            <!-- Player de áudio -->
-                    {% if audiolivro.audio %}
-                        <audio controls class="audio-player">
-                            <source src="{{ audiolivro.audio.url }}" type="audio/mpeg">
-                            O seu navegador não suporta a reprodução de áudio.
-                        </audio>
+        {% else %}
+        <p><em>Sem áudio disponível</em></p>
+        {% endif %}
+
+        <div class="like-display">
+            <i class="fa-solid fa-heart"></i>
+            <span id="like-count">{{ like_count }}</span>
+            {% if request.user.is_authenticated %}
+                <button id="btn-like" data-url="{% url 'tfc:toggle_like' audiolivro.id %}" aria-label="Curtir este audiolivro">
+                    {% if liked %}
+                        <i id="icon-like" class="fa-solid fa-heart"></i>
                     {% else %}
-                        <p><em>Sem áudio disponível</em></p>
+                        <i id="icon-like" class="fa-solid fa-heart-circle-plus"></i>
                     {% endif %}
-                </div>
-            </div>
+                </button>
+            {% endif %}
         </div>
-
-
-        <div class="comentarios-container">
-            <h3>Comentários</h3>
-
-            <!-- Formulário para Criar Comentário -->
-            <form id="comentarioForm" action="{% url 'tfc:criarComentarioInline' audiolivro_id=audiolivro.id %}" method="POST" enctype="multipart/form-data">
-                {% csrf_token %}
-                <textarea name="texto" class="comentario-texto" placeholder="Escreva o seu comentário..." rows="3"></textarea>
-
-                <div class="botoes-gravacao">
-                    <button type="button" id="btnGravar" class="botao-gravar">🎤 Gravar</button>
-                    <button type="button" id="btnParar" class="botao-parar" disabled>⏹️ Parar</button>
-                </div>
-
-                <button type="submit" class="botao-publicar">Publicar</button>
-            </form>
-
-            <!-- Comentários Publicados -->
-            <div class="comentarios">
-                {% for comment in comentario %}
-                    <div class="comentario">
-                        <p class="autor">{{ comment.autor.nome }}</p>
-                        <p>{{ comment.texto }}</p>
-                        {% if comment.audio %}
-                            <audio controls>
-                                <source src="{{ comment.audio.url }}" type="audio/mpeg">
-                                O seu navegador não suporta a reprodução de áudio.
-                            </audio>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Script para Gravação de Áudio -->
-    <script>
-        let mediaRecorder;
-        let audioChunks = [];
+  <div class="comentarios-container">
+    <h3>Comentários</h3>
+    <form id="comentarioForm" action="{% url 'tfc:criarComentarioInline' audiolivro_id=audiolivro.id %}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="audio" id="audioComentario" style="display: none;">
+      <textarea name="texto" class="comentario-texto" placeholder="Escreva o seu comentário..." rows="3"></textarea>
+      <div class="botoes-gravacao">
+        <button type="button" id="btnGravar" class="botao-gravar">🎤 Gravar</button>
+        <button type="button" id="btnParar" class="botao-parar" disabled>⏹️ Parar</button>
+        <button type="submit" class="botao-publicar">Publicar</button>
+      </div>
+    </form>
+    <div class="comentarios">
+      {% for comment in comentarios %}
+      <div class="comentario">
+        <p class="autor">{{ comment.autor.nome }}</p>
+        <p>{{ comment.texto }}</p>
+        {% if comment.audio %}
+        <audio controls>
+        <source src="{{ comment.audio.url }}" type="{{ comment.audio.file.content_type }}"/>
+        O seu navegador não suporta reprodução de áudio.
+        </audio>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
 
-        const btnGravar = document.getElementById('btnGravar');
-        const btnParar = document.getElementById('btnParar');
-        const audioInput = document.getElementById('audioComentario');
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btnLike = document.getElementById('btn-like');
+  if (btnLike) {
+    const icon    = document.getElementById('icon-like');
+    const countEl = document.getElementById('like-count');
+    btnLike.addEventListener('click', e => {
+      e.preventDefault();
+      fetch(btnLike.dataset.url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Accept':      'application/json'
+        },
+        credentials: 'same-origin'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.liked) {
+          icon.classList.replace('fa-heart-circle-plus','fa-heart');
+        } else {
+          icon.classList.replace('fa-heart','fa-heart-circle-plus');
+        }
+        countEl.textContent = data.count;
+      })
+      .catch(console.error);
+    });
+  }
 
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
+  let mediaRecorder, audioChunks = [];
+  const btnGravar  = document.getElementById('btnGravar');
+  const btnParar   = document.getElementById('btnParar');
+  const audioInput = document.getElementById('audioComentario');
 
-                mediaRecorder.addEventListener("dataavailable", event => {
-                    audioChunks.push(event.data);
-                });
+  if (navigator.mediaDevices && btnGravar && btnParar) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.addEventListener('dataavailable', e => audioChunks.push(e.data));
+        mediaRecorder.addEventListener('stop', () => {
+          const blob = new Blob(audioChunks, { type: 'audio/mpeg' });
+          audioChunks = [];
+          const file = new File([blob], 'comentario_audio.mp3', { type: 'audio/mpeg' });
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          audioInput.files = dt.files;
+        });
+        btnGravar.addEventListener('click', () => {
+          mediaRecorder.start();
+          btnGravar.disabled = true;
+          btnParar.disabled  = false;
+        });
+        btnParar.addEventListener('click', () => {
+          mediaRecorder.stop();
+          btnGravar.disabled = false;
+          btnParar.disabled  = true;
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao acessar microfone:', err);
+        btnGravar.disabled = btnParar.disabled = true;
+      });
+  }
 
-                mediaRecorder.addEventListener("stop", () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
-                    audioChunks = [];
-                    const file = new File([audioBlob], "comentario_audio.mp3", { type: 'audio/mpeg' });
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    audioInput.files = dataTransfer.files;
-                });
+  const audioEl = document.querySelector('.audio-player');
+  if (!audioEl) return;
 
-                btnGravar.addEventListener("click", () => {
-                    mediaRecorder.start();
-                    btnGravar.disabled = true;
-                    btnParar.disabled = false;
-                });
+  const bmUrl  = "{% url 'tfc:get_bookmark' audiolivro.id %}";
+  const setUrl = "{% url 'tfc:set_bookmark' audiolivro.id %}";
 
-                btnParar.addEventListener("click", () => {
-                    mediaRecorder.stop();
-                    btnGravar.disabled = false;
-                    btnParar.disabled = true;
-                });
-            })
-            .catch(error => {
-                console.error("Erro ao acessar o microfone: ", error);
-                btnGravar.disabled = true;
-                btnParar.disabled = true;
-            });
-    </script>
+  fetch(bmUrl, {
+    credentials: 'same-origin',
+    headers: { 'Accept': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.position) return;
+
+    function setPosition() {
+      if (audioEl.duration > data.position) {
+        audioEl.currentTime = data.position;
+      }
+      audioEl.removeEventListener('loadedmetadata', setPosition);
+    }
+
+    if (audioEl.readyState >= 1) {
+      setPosition();
+    } else {
+      audioEl.addEventListener('loadedmetadata', setPosition);
+    }
+  })
+  .catch(console.error);
+
+  function salvarBookmark() {
+    fetch(setUrl, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken':  '{{ csrf_token }}',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      credentials: 'same-origin',
+      body: new URLSearchParams({
+        position: audioEl.currentTime.toFixed(1)
+      })
+    }).catch(console.error);
+  }
+
+  let lastSaved = 0;
+  audioEl.addEventListener('timeupdate', () => {
+    const now = Math.floor(audioEl.currentTime);
+    if (now - lastSaved >= 5) {
+      lastSaved = now;
+      salvarBookmark();
+    }
+  });
+
+  audioEl.addEventListener('pause', salvarBookmark);
+  window.addEventListener('beforeunload', salvarBookmark);
+});
+</script>
 {% endblock %}

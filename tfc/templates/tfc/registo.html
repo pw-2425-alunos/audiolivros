@@ -15,14 +15,17 @@
         <form action="{% url 'tfc:registo' %}" method="post" class="register-form" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <label for="nome">Nome de Utilizador * </label>
             <input type="text" name="nome" placeholder="Nome da Família" required>
+            <label for="email">Email * </label>
             <input type="email" name="email" placeholder="Email" required>
+            <label for="password">Password * </label>
             <input type="password" name="password" placeholder="Senha" required>
 
-            <label for="foto">Foto da Família:</label>
+            <label for="foto">Foto da Família (opcional)</label>
             <input type="file" name="foto" accept="image/*">
 
-            <label for="apresentacao_familia">Apresentação (opcional):</label>
+            <label for="apresentacao_familia">Apresentação (opcional)</label>
             <input type="file" name="apresentacao_familia" accept="audio/*, video/*, .pdf, .doc, .docx">
 
             <input type="submit" value="Criar Conta">

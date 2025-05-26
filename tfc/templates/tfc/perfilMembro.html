@@ -8,15 +8,15 @@
 <div class="perfil-membro-container">
     <div class="membro">
         {% if membro.foto %}
-            <img src="{{ membro.foto.url }}" alt="Foto de {{ membro.nome }}" class="membro-foto">
+            <img src="{{ membro.foto.url }}" alt="Fotografia de {{ membro.nome }}" class="membro-foto">
         {% else %}
             <div class="sem-foto">
-                <span>Sem Foto</span>
+                <span>Sem Fotografia</span>
             </div>
         {% endif %}
 
-        <h2 class="membro-nome">{{ membro.nome }}</h2>
-        <p><strong>Idade:</strong> {{ membro.idade }}</p>
+        <h2 class="membro-nome">{{ membro.nome }} {{ membro.familia }}</h2>
+        <p> {{ membro.idade }} anos</p>
 
         {% if membro.apresentacao_audio %}
             <p><strong>Apresentação em Áudio:</strong></p>
@@ -24,12 +24,11 @@
                 <source src="{{ membro.apresentacao_audio.url }}" type="audio/mpeg">
                 O seu navegador não suporta o elemento de áudio.
             </audio>
-        {% else %}
-            <p><em>Sem apresentação em áudio.</em></p>
         {% endif %}
 
     </div>
-    <a href="{% url 'tfc:editarPerfilMembro' membro.id %}" class="text-red-500 text-lg font-semibold">Editar Perfil Membro</a>
+    <a href="{% url 'tfc:editarPerfilMembro' membro.id %}" class="text-red-500 text-lg font-semibold">Editar Perfil</a>
     <a href="{% url 'tfc:removerMembro' membro.id %}" class="text-red-500 text-lg font-semibold">Remover Membro</a>
+    <a href="{% url 'tfc:perfilFamilia'%}">Cancelar</a>
 </div>
 {% endblock %}
