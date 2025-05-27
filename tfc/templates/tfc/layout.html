@@ -27,20 +27,20 @@
             </form>
 
             <div class="zoom-buttons">
-                <button id="zoomIn" title="Aumentar Zoom" data-announce="Aumentar texto"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <button id="zoomOut" title="Diminuir Zoom" data-announce="Diminuir texto"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button id="zoomIn" title="Aumentar Zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button id="zoomOut" title="Diminuir Zoom"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
             </div>
 
 
            <nav class="navbar">
                 <ul class="nav-list">
-                    <li><a href="{% url 'tfc:biblioteca' %}" data-announce="Biblioteca"><i class="fa-solid fa-book"></i><span>Biblioteca</span></a></li>
-                    <li><a href="{% url 'tfc:gravar' %}" data-announce="Gravar AudioLivro"><i class="fa-solid fa-microphone"></i><span>Gravar</span></a></li>
+                    <li><a href="{% url 'tfc:biblioteca' %}"><i class="fa-solid fa-book"></i><span>Biblioteca</span></a></li>
+                    <li><a href="{% url 'tfc:gravar' %}"><i class="fa-solid fa-microphone"></i><span>Gravar</span></a></li>
                     {% if request.user.is_authenticated %}
-                        <li><a href="{% url 'tfc:perfilFamilia' %}" data-announce="Perfil família"><i class="fa-solid fa-user"></i><span>Família</span></a></li>
-                        <li><a href="{% url 'tfc:logout' %}" data-announce="Logout"><i class="fa-solid fa-sign-out-alt"></i><span>Logout</span></a></li>
+                        <li><a href="{% url 'tfc:perfilFamilia' %}"><i class="fa-solid fa-user"></i><span>Família</span></a></li>
+                        <li><a href="{% url 'tfc:logout' %}"><i class="fa-solid fa-sign-out-alt"></i><span>Logout</span></a></li>
                     {% else %}
-                        <li><a href="{% url 'tfc:login' %}" data-announce="Login"><i class="fa-solid fa-user"></i><span>Login</span></a></li>
+                        <li><a href="{% url 'tfc:login' %}"><i class="fa-solid fa-user"></i><span>Login</span></a></li>
                     {% endif %}
                 </ul>
             </nav>

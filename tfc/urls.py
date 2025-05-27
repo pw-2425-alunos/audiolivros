@@ -28,4 +28,6 @@ urlpatterns = [
     path('audiolivro/<int:audiolivro_id>/like/', toggle_like, name='toggle_like'),
     path('audiolivro/<int:audiolivro_id>/bookmark/', views.get_bookmark, name='get_bookmark'),
     path('audiolivro/<int:audiolivro_id>/bookmark/set/', views.set_bookmark, name='set_bookmark'),
+    path('comentario/<int:comentario_id>/apagar/', views.apagar_comentario, name='apagar_comentario'),
+    path('comentario/<int:comentario_id>/editar/', views.editar_comentario, name='editar_comentario'),
 ]

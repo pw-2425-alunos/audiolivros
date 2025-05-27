@@ -12,10 +12,10 @@ from collections import defaultdict
 from django.urls import reverse
 from django.core.files.base import ContentFile
 from urllib.request import urlopen
+from django.http import HttpResponseForbidden
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
-
 
 @csrf_exempt
 
@@ -302,13 +302,14 @@ def criarAudiolivroInline(request):
 def criarComentarioInline(request, audiolivro_id):
     audiolivro = get_object_or_404(AudioLivro, id=audiolivro_id)
 
-    if not request.user.is_authenticated:
-        messages.error(request, "É necessário fazer login para comentar.")
-        return redirect('tfc:detalhe_audiolivro', audiolivro_id=audiolivro.id)
-
     if request.method == "POST":
-        texto = request.POST.get("texto")
+        texto = request.POST.get("texto", "").strip()
+        audio = request.FILES.get("audio")
         familia = get_object_or_404(Familia, nome=request.user.username)
+
+        if not texto and not audio:
+            messages.error(request, "Tens de escrever algo ou submeter um áudio para comentar.")
+            return redirect('tfc:detalhe_audiolivro', audiolivro_id=audiolivro.id)
 
         comentario = Comentario(
             texto=texto,
@@ -316,8 +317,8 @@ def criarComentarioInline(request, audiolivro_id):
             autor=familia
         )
 
-        if request.FILES.get('audio'):
-            comentario.audio = request.FILES.get('audio')
+        if audio:
+            comentario.audio = audio
 
         comentario.save()
         messages.success(request, "Comentário adicionado com sucesso!")
@@ -397,3 +398,33 @@ def set_bookmark(request, audiolivro_id):
         defaults={'position': pos}
     )
     return JsonResponse({'position': bm.position})
+
+
+@login_required
+def apagar_comentario(request, comentario_id):
+    comentario = get_object_or_404(Comentario, id=comentario_id)
+    familia = get_object_or_404(Familia, nome=request.user.username)
+
+    if comentario.autor != familia:
+        return HttpResponseForbidden("Não tens permissão para apagar este comentário.")
+
+    audiolivro_id = comentario.audio_livro.id
+    comentario.delete()
+    messages.success(request, "Comentário apagado com sucesso.")
+    return redirect('tfc:detalhe_audiolivro', audiolivro_id=audiolivro_id)
+
+
+@require_POST
+@login_required
+def editar_comentario(request, comentario_id):
+    comentario = get_object_or_404(
+        Comentario,
+        id=comentario_id,
+        autor__nome=request.user.username
+    )
+    novo_texto = request.POST.get('texto', '').strip()
+    if not novo_texto:
+        return JsonResponse({'success': False, 'error': 'Texto vazio.'}, status=400)
+    comentario.texto = novo_texto
+    comentario.save()
+    return JsonResponse({'success': True, 'texto': comentario.texto})
