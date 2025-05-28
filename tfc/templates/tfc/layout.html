@@ -2,6 +2,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Título Padrão{% endblock %}</title>
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-NCvDIE3dfJxRG5LkIxEJ2A5i8bnncf+6KHDf2sZ6xF0SkI4x4BEMbKBiT3B8Z3jG" crossorigin="anonymous">
@@ -19,7 +20,7 @@
 <body>
     <div class="contentor">
         <header id="tituloSite">
-            <a href="{% url 'tfc:home' %}" </a>
+            <a href="{% url 'tfc:home' %}" class="logo-link">
                 <img src="{% static 'tfc/angp.png' %}" alt="Logo ANGP" class="logo-header">
             </a>
             <form method="get" action="{% url 'tfc:biblioteca' %}" class="search-form">

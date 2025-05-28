@@ -16,6 +16,9 @@ from django.http import HttpResponseForbidden
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
+from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
+import mimetypes
 
 @csrf_exempt
 
@@ -33,17 +36,26 @@ def login_view(request):
     return render(request, 'tfc/login.html')
 
 
+def is_image(file):
+    mime = file.content_type
+    return mime.startswith('image/')
+
+def is_audio(file):
+    mime = file.content_type
+    return mime.startswith('audio/')
+
 @csrf_exempt
 def registo_view(request):
-    context = {}  # Definindo um dicionário vazio no início
+    context = {}
 
     if request.method == "POST":
         nome = request.POST.get('nome')
         foto = request.FILES.get('foto')
-        password = request.POST.get('password')
         apresentacao_familia = request.FILES.get('apresentacao_familia')
+        password = request.POST.get('password')
         email = request.POST.get('email')
 
+        # Verificações de existência
         if Familia.objects.filter(nome=nome).exists():
             context['error'] = 'Família já se encontra registada.'
             return render(request, 'tfc/registo.html', context)
@@ -52,16 +64,30 @@ def registo_view(request):
             context['error'] = 'Email já foi utilizado por outra conta.'
             return render(request, 'tfc/registo.html', context)
 
+        # Validação de tipo de ficheiro
+        if foto and not is_image(foto):
+            context['error'] = 'A fotografia deve ser um ficheiro de imagem válido.'
+            return render(request, 'tfc/registo.html', context)
+
+        if apresentacao_familia and not is_audio(apresentacao_familia):
+            context['error'] = 'A apresentação da família deve ser um ficheiro de áudio válido.'
+            return render(request, 'tfc/registo.html', context)
+
         familia = Familia.objects.create(
-            nome=nome, email=email, foto=foto,
-            password=password, apresentacao_familia=apresentacao_familia
+            nome=nome,
+            email=email,
+            password=password,
+            foto=foto,
+            apresentacao_familia=apresentacao_familia
         )
+
         user = User.objects.create_user(username=nome, email=email, password=password)
         user.save()
 
         return redirect('tfc:login')
 
     return render(request, 'tfc/registo.html', context)
+
 
 def logout_view(request):
     logout(request)
@@ -132,23 +158,33 @@ def editar_perfil_membro_view(request, membro_id):
 @login_required
 def add_membro(request, familia_id):
     familia = get_object_or_404(Familia, id=familia_id)
+    context = {'familia': familia}
 
     if request.method == "POST":
         nome = request.POST.get("nome")
         idade = request.POST.get("idade")
         foto = request.FILES.get("foto")
+        apresentacao_audio = request.FILES.get("apresentacao_audio")
+
+        if foto and not is_image(foto):
+            context['error'] = 'A fotografia deve ser um ficheiro de imagem válido.'
+            return render(request, 'tfc/addMembro.html', context)
+
+        if apresentacao_audio and not is_audio(apresentacao_audio):
+            context['error'] = 'A apresentação do membro deve ser um ficheiro de áudio válido.'
+            return render(request, 'tfc/addMembro.html', context)
 
         membro = Membro.objects.create(
             nome=nome,
             idade=idade,
             foto=foto,
+            apresentacao_audio=apresentacao_audio,
             familia=familia
         )
-        membro.save()
 
         return redirect('tfc:perfilFamilia', familia_id=familia.id)
 
-    return render(request, 'tfc/addMembro.html', {'familia': familia})
+    return render(request, 'tfc/addMembro.html', context)
 
 @login_required
 def remover_membro_view(request, membro_id):
@@ -332,9 +368,14 @@ def editar_audiolivro(request, id):
 
     if request.method == 'POST':
         form = AudioLivroForm(request.POST, request.FILES, instance=audiolivro)
-        if form.is_valid():
+
+        descricao_audio = request.FILES.get('descricao_audio')
+        if descricao_audio and not is_audio(descricao_audio):
+            form.add_error('descricao_audio', 'O ficheiro deve ser um áudio válido.')
+        elif form.is_valid():
             form.save()
             return redirect('tfc:perfilFamilia')
+
     else:
         form = AudioLivroForm(instance=audiolivro)
 

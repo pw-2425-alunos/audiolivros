@@ -17,13 +17,40 @@
             <label for="nome">Nome de Utilizador * </label>
             <input type="text" id="nome" name="nome" required>
             <br>
+
             <label for="password">Password *</label>
-            <input type="password" id="password" name="password" required>
+            <div style="position: relative;">
+                <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggle-password" style="
+                    position: absolute;
+                    top: 45%;
+                    transform: translateY(-50%);
+                    right: 0;
+                    height: 100%;
+                    width: 60px;
+                    border: none;
+                    background: transparent;
+                    cursor: pointer;
+                    font-size: 18px;
+                    padding: 0;
+                    margin: 0;
+                ">👁️</button>
+            </div>
+
             <br>
             <button type="submit">Entrar</button>
         </form>
         <p class="signup-prompt">Não tem uma conta? <a href="{% url 'tfc:registo' %}">Criar Conta</a></p>
     </div>
-
 </div>
+
+<script>
+    const togglePassword = document.getElementById("toggle-password");
+    const passwordInput = document.getElementById("password");
+
+    togglePassword.addEventListener("click", function () {
+        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+        passwordInput.setAttribute("type", type);
+    });
+</script>
 {% endblock %}

@@ -1715,3 +1715,126 @@ audio::-webkit-media-controls-panel {
 
 
 
+/* ================= TELEFONE PAGINA DA BIBLIOTECA E HEADER ================= */
+@media (max-width: 480px) {
+  .row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+  .card-biblioteca {
+    height: 400px;
+  }
+  .card-biblioteca .card-img-top {
+    height: 200px;
+  }
+  .card-biblioteca .card-title {
+    font-size: 1.2rem;
+  }
+  .card-biblioteca .card-text {
+    font-size: 1.2rem;
+  }
+  .card-biblioteca audio {
+    max-width: 100%;
+  }
+
+  header {
+    padding: 10px 5px;
+  }
+
+  .logo-header {
+    height: 40px;
+  }
+
+  .search-input {
+    width: 70%;
+    height: 32px;
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+
+    header#tituloSite {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header#tituloSite .logo-link,
+  header#tituloSite .search-form {
+    order: 1;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  header#tituloSite .logo-link {
+    justify-content: flex-start;
+    padding-left: 5px;
+  }
+  header#tituloSite .zoom-buttons,
+  header#tituloSite .navbar {
+    order: 2;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  /* Ajustes de ícones */
+  .zoom-buttons button {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+  }
+  .navbar a i {
+    font-size: 20px;
+  }
+  .navbar a span {
+    font-size: 12px;
+  }
+}
+
+
+/* ================= TELEFONE PAGINA DE DETALHES================= */
+
+
+@media (max-width: 480px) {
+
+  .card-detalhes {
+    max-width: 100%;
+    margin: 180px 10px 20px;
+    padding: 15px;
+
+  }
+  .card-detalhes .card-img-top {
+    height: 180px;
+  }
+  .card-detalhes .card-title {
+    font-size: 1.25rem;
+  }
+  .card-detalhes .card-text {
+    font-size: 0.9rem;
+  }
+
+  .comentario-texto {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+
+  .botoes-gravacao {
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .botao-gravar,
+  .botao-parar,
+  .botao-publicar {
+    font-size: 1rem;
+    padding: 8px 16px;
+  }
+  .botao-publicar {
+    width: auto;
+  }
+}
