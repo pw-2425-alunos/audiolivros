@@ -1,56 +1,74 @@
 {% extends 'tfc/layout.html' %}
+{% load static %}
+{% load socialaccount %}
 
 {% block title %}Login{% endblock %}
 
 {% block content %}
-{% load static %}
 <div class="login-page">
-    <div class="form-container">
-        <h3>Login</h3>
+  <div class="form-container">
+    <h3>Login</h3>
 
-        {% if error %}
-            <p class="error-message">{{ error }}</p>
-        {% endif %}
+    {# Se houver erro do POST de nome+senha, exibimos aqui #}
+    {% if error %}
+      <p class="error-message">{{ error }}</p>
+    {% endif %}
 
-        <form method="POST">
-            {% csrf_token %}
-            <label for="nome">Nome de Utilizador * </label>
-            <input type="text" id="nome" name="nome" required>
-            <br>
+    {# === Formulário “tradicional” nome+senha === #}
+    <form method="POST" action="{% url 'tfc:login' %}">
+      {% csrf_token %}
+      <label for="nome">Nome de Utilizador *</label>
+      <input type="text" id="nome" name="nome" required>
 
-            <label for="password">Password *</label>
-            <div style="position: relative;">
-                <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
-                <button type="button" id="toggle-password" style="
-                    position: absolute;
-                    top: 45%;
-                    transform: translateY(-50%);
-                    right: 0;
-                    height: 100%;
-                    width: 60px;
-                    border: none;
-                    background: transparent;
-                    cursor: pointer;
-                    font-size: 18px;
-                    padding: 0;
-                    margin: 0;
-                ">👁️</button>
-            </div>
-
-            <br>
-            <button type="submit">Entrar</button>
-        </form>
-        <p class="signup-prompt">Não tem uma conta? <a href="{% url 'tfc:registo' %}">Criar Conta</a></p>
+    <label for="password">Password *</label>
+    <div style="position: relative; width: 100%;">
+        <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
+        <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe" style="
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            right: 0;
+            height: 100%;
+            width: 60px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            margin: 0;
+            color: #555;
+        ">
+        <i id="eye-icon" class="bi bi-eye-slash"></i>
+        </button>
+        <class="signup-prompt"> <a href="{% url 'tfc:recuperar_password' %}"  style="color: white;">Esqueceu-se?</a> </class>
     </div>
+
+      <button type="submit" class="btn btn-primary">Entrar</button>
+    </form>
+
+    <p class="signup-prompt">
+    <a>Não tem uma conta?</a> <button><a href="{% url 'tfc:registo' %}"  style="color: white;">Criar Conta</a></button>
+    </p>
+
+    <a href="{% provider_login_url 'google' %}?next=/biblioteca/" class="btn btn-danger">
+        <i class="bi bi-google"></i> Entrar com Google
+    </a>
+
+
+
+  </div>
 </div>
 
 <script>
-    const togglePassword = document.getElementById("toggle-password");
-    const passwordInput = document.getElementById("password");
+  const toggleBtn = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("password");
+  const eyeIcon = document.getElementById("eye-icon");
 
-    togglePassword.addEventListener("click", function () {
-        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-        passwordInput.setAttribute("type", type);
-    });
+  toggleBtn.addEventListener("click", () => {
+    const isVisible = passwordInput.type === "text";
+    passwordInput.type = isVisible ? "password" : "text";
+    eyeIcon.className = isVisible ? "bi bi-eye-slash" : "bi bi-eye";
+  });
 </script>
+
 {% endblock %}

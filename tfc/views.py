@@ -4,35 +4,31 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import AudioLivro, Membro, Familia, Comentario, Like, Bookmark
 from .forms import AudioLivroForm, ComentarioForm
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from collections import defaultdict
-from django.urls import reverse
 from django.core.files.base import ContentFile
 from urllib.request import urlopen
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
-from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
-import mimetypes
+from django.core.mail import send_mail
+from django.utils.crypto import get_random_string
 
 @csrf_exempt
-
 def login_view(request):
     if request.method == 'POST':
-        username = request.POST['nome']
-        password = request.POST['password']
+        username = request.POST.get('nome')
+        password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
-
         if user is not None:
             login(request, user)
             return redirect('tfc:biblioteca')
         else:
             return render(request, 'tfc/login.html', {'error': 'Credenciais inválidas'})
+
     return render(request, 'tfc/login.html')
 
 
@@ -93,6 +89,65 @@ def logout_view(request):
     logout(request)
     return redirect('tfc:login')
 
+
+@csrf_exempt
+def recuperar_password_view(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        familia = Familia.objects.filter(email=email).first()
+
+        if not familia:
+            return render(request, "tfc/recuperar_password.html", {"error": "Email não encontrado."})
+
+        nova_password = get_random_string(length=8)
+        familia.password = nova_password
+        familia.save()
+
+        user = User.objects.filter(username=familia.nome).first()
+        if user:
+            user.set_password(nova_password)
+            user.save()
+
+        send_mail(
+            subject="Recuperação de Password",
+            message=f"A sua nova password temporária é: {nova_password}",
+            from_email='carlotapbmontalvao02@gmail.com',
+            recipient_list=[email],
+        )
+
+        return render(request, "tfc/recuperar_password.html", {"success": "Nova password enviada para o email."})
+
+    return render(request, "tfc/recuperar_password.html")
+
+
+@login_required
+def alterar_password_view(request):
+    if request.method == "POST":
+        atual = request.POST.get("password_atual")
+        nova = request.POST.get("nova_password")
+        confirmar = request.POST.get("confirmar_password")
+
+        if not atual or not nova or not confirmar:
+            messages.error(request, "Todos os campos são obrigatórios.")
+            return redirect("tfc:alterar_password")
+
+        if nova != confirmar:
+            messages.error(request, "As novas passwords não coincidem.")
+            return redirect("tfc:alterar_password")
+
+        user = authenticate(username=request.user.username, password=atual)
+        if user is None:
+            messages.error(request, "Password atual incorreta.")
+            return redirect("tfc:alterar_password")
+
+        user.set_password(nova)
+        user.save()
+        messages.success(request, "Password alterada com sucesso.")
+        return redirect("tfc:login")
+
+    return render(request, "tfc/alterar_password.html")
+
+
 @login_required
 def perfil_familia_view(request, familia_id=None):
 
@@ -127,21 +182,15 @@ def editar_perfil_familia_view(request):
             familia.apresentacao_familia = request.FILES["apresentacao_familia"]
 
         familia.save()
-        return redirect("tfc:perfilFamilia")
+        return redirect("tfc:perfilFamilia", familia.id)
 
     return render(request, "tfc/editarPerfilFamilia.html", {"familia": familia})
 
 
 @login_required
-def perfil_membro_view(request, membro_id):
-    membro = get_object_or_404(Membro, id=membro_id)
-
-    context = {'membro': membro}
-    return render(request, 'tfc/perfilMembro.html', context)
-
-@login_required
 def editar_perfil_membro_view(request, membro_id):
     membro = get_object_or_404(Membro, id=membro_id)
+    familia = membro.familia
 
     if request.method == "POST":
         membro.nome = request.POST.get("nome", membro.nome)
@@ -151,9 +200,9 @@ def editar_perfil_membro_view(request, membro_id):
             membro.foto = request.FILES["foto"]
 
         membro.save()
-        return redirect("tfc:perfilFamilia")
+        return redirect("tfc:perfilFamilia", membro.familia.id)
 
-    return render(request, "tfc/editarPerfilMembro.html", {"membro": membro})
+    return render(request, "tfc/editarPerfilMembro.html", {"membro": membro, "familia":familia})
 
 @login_required
 def add_membro(request, familia_id):
@@ -201,18 +250,36 @@ def remover_membro_view(request, membro_id):
 
     return render(request, 'tfc/removerMembro.html', {'membro': membro})
 
-def biblioteca_view(request):
-    query = request.GET.get('q', '')
-    categoria = request.GET.get('categoria', '')
+@login_required
+def remover_audiolivro_view(request, pk):
+    audiolivro = get_object_or_404(AudioLivro, pk=pk)
 
-    if query:
-        membro = Membro.objects.filter(nome__iexact=query).first()
-        if membro and membro.familia:
-            return redirect(f"{reverse('tfc:perfilFamilia')}?id={membro.familia.id}")
+    if not audiolivro.gravado_por or audiolivro.gravado_por.nome != request.user.username:
+        messages.error(request, "Ação não permitida pelo user")
+        return redirect("tfc:perfilFamilia")
+
+    if request.method == "POST":
+        audiolivro.delete()
+        messages.success(request, "Audiolivro removido com sucesso.")
+        return redirect("tfc:perfilFamilia")
+
+    return render(request, 'tfc/removerAudiolivro.html', {'audiolivro': audiolivro})
+
+
+def biblioteca_view(request):
+    query = request.GET.get('q', '').strip()
+    categoria = request.GET.get('categoria', '').strip()
 
     audiolivros = AudioLivro.objects.filter(publicado=True)
+
     if query:
-        audiolivros = audiolivros.filter(titulo__icontains=query)
+        familia = Familia.objects.filter(nome__iexact=query).first()
+        if familia:
+            audiolivros = audiolivros.filter(gravado_por=familia)
+        else:
+            audiolivros = audiolivros.filter(titulo__icontains=query)
+
+
     if categoria:
         audiolivros = audiolivros.filter(categoria=categoria)
 
@@ -227,9 +294,9 @@ def biblioteca_view(request):
 
     continuar = []
     if request.user.is_authenticated:
-        familia = Familia.objects.filter(nome=request.user.username).first()
-        if familia:
-            for bm in Bookmark.objects.filter(familia=familia):
+        familia_user = Familia.objects.filter(nome=request.user.username).first()
+        if familia_user:
+            for bm in Bookmark.objects.filter(familia=familia_user):
                 dur = bm.audiolivro.duracao or 0
                 if bm.position and bm.position < dur - 1:
                     continuar.append((bm.audiolivro, bm.position))
@@ -242,7 +309,6 @@ def biblioteca_view(request):
         'continuar': continuar,
     }
     return render(request, "tfc/biblioteca.html", context)
-
 
 def detalhe_audiolivro_view(request, audiolivro_id):
 
@@ -274,7 +340,9 @@ def criarAudiolivro_view(request):
         if form.is_valid():
             audiolivro = form.save(commit=False)
             audiolivro.publicado = False
-            audiolivro.gravado_por = get_object_or_404(Familia, nome=request.user.username)
+
+            familia_user = get_object_or_404(Familia, nome=request.user.username)
+            audiolivro.gravado_por = familia_user
 
             if audio_url and not request.FILES.get('audio'):
                 audio_filename = os.path.basename(audio_url)
@@ -286,7 +354,10 @@ def criarAudiolivro_view(request):
     else:
         form = AudioLivroForm()
 
-    context = {'form': form, 'audio_url': audio_url}
+    context = {
+        'form': form,
+        'audio_url': audio_url,
+    }
     return render(request, 'tfc/criarAudiolivro.html', context)
 
 
@@ -341,9 +412,10 @@ def criarComentarioInline(request, audiolivro_id):
     if request.method == "POST":
         texto = request.POST.get("texto", "").strip()
         audio = request.FILES.get("audio")
+        desenho = request.FILES.get("desenho")
         familia = get_object_or_404(Familia, nome=request.user.username)
 
-        if not texto and not audio:
+        if not texto and not audio and not desenho:
             messages.error(request, "Tens de escrever algo ou submeter um áudio para comentar.")
             return redirect('tfc:detalhe_audiolivro', audiolivro_id=audiolivro.id)
 
@@ -355,6 +427,9 @@ def criarComentarioInline(request, audiolivro_id):
 
         if audio:
             comentario.audio = audio
+
+        if desenho:
+            comentario.desenho = desenho
 
         comentario.save()
         messages.success(request, "Comentário adicionado com sucesso!")
@@ -394,6 +469,9 @@ def publicar_audiolivro_view(request, audiolivro_id):
 
 def home_view(request):
     return render(request, 'tfc/home.html')
+
+def sobre_aplicacao_view(request):
+    return render(request, 'tfc/sobre_aplicacao.html')
 
 
 @login_required
@@ -469,3 +547,10 @@ def editar_comentario(request, comentario_id):
     comentario.texto = novo_texto
     comentario.save()
     return JsonResponse({'success': True, 'texto': comentario.texto})
+
+
+def tutorial_view(request):
+    contexto = {
+        'video_embed_url': 'https://www.youtube.com/embed/SEU_VIDEO_ID_AQUI'
+    }
+    return render(request, 'tfc/tutorial.html', contexto)

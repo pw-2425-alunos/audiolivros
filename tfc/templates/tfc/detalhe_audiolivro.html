@@ -11,6 +11,7 @@
     <div class="card-detalhes shadow-sm">
       <img src="{{ audiolivro.capa.url }}" class="card-img-top" alt="Capa de {{ audiolivro.titulo }}">
       <div class="card-body">
+        <p>{{ audiolivro.descricao }}</p><br>
         <p><strong>Autor:</strong> {{ audiolivro.autor }}</p>
         <p><strong>Gravado por:</strong>
         {% if audiolivro.gravado_por %}
@@ -21,8 +22,7 @@
         {% else %}
             Desconhecido
         {% endif %}
-        </p>
-        <p><strong>Resumo:</strong> {{ audiolivro.descricao }}</p>
+        </p><br>
         {% if audiolivro.audio %}
         <audio controls class="audio-player"
             data-id="{{ audiolivro.id }}">
@@ -79,7 +79,7 @@
                 class="botao-apagar-comentario"
                 title="Apagar comentário"
                 onclick="return confirm('Tens a certeza que queres apagar este comentário?')">
-          ×
+          <i class="bi bi-trash"></i>
         </button>
       </form>
       {# somente se houver texto, mostras o botão de editar #}
@@ -113,19 +113,156 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const btnLike = document.getElementById('btn-like');
+  if (btnLike) {
+    const icon    = document.getElementById('icon-like');
+    const countEl = document.getElementById('like-count');
+    btnLike.addEventListener('click', e => {
+      e.preventDefault();
+      fetch(btnLike.dataset.url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}',
+          'Accept':      'application/json'
+        },
+        credentials: 'same-origin'
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.liked) {
+          icon.classList.replace('fa-heart-circle-plus','fa-heart');
+        } else {
+          icon.classList.replace('fa-heart','fa-heart-circle-plus');
+        }
+        countEl.textContent = data.count;
+      })
+      .catch(console.error);
+    });
+  }
+
+  let mediaRecorder, audioChunks = [];
+  const btnGravar    = document.getElementById('btnGravar');
+  const btnParar     = document.getElementById('btnParar');
+  const audioInput   = document.getElementById('audioComentario');
+  const commentPlayer = document.getElementById('playerComentario');
+
+  if (navigator.mediaDevices && btnGravar && btnParar && audioInput && commentPlayer) {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        mediaRecorder = new MediaRecorder(stream);
+
+        mediaRecorder.addEventListener('dataavailable', e => audioChunks.push(e.data));
+
+        mediaRecorder.addEventListener('stop', () => {
+          const blob = new Blob(audioChunks, { type: 'audio/mpeg' });
+          audioChunks = [];
+          const file = new File([blob], 'comentario_audio.mp3', { type: 'audio/mpeg' });
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          audioInput.files = dt.files;
+
+          const url = URL.createObjectURL(blob);
+          commentPlayer.src = url;
+          commentPlayer.style.display = 'block';
+        });
+
+        btnGravar.addEventListener('click', () => {
+          mediaRecorder.start();
+          btnGravar.disabled = true;
+          btnParar.disabled  = false;
+        });
+        btnParar.addEventListener('click', () => {
+          mediaRecorder.stop();
+          btnGravar.disabled = false;
+          btnParar.disabled  = true;
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao acessar microfone:', err);
+        btnGravar.disabled = btnParar.disabled = true;
+      });
+  }
+
+  const form = document.getElementById('comentarioForm');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      const texto     = form.querySelector('textarea[name="texto"]').value.trim();
+      const audioFile = form.querySelector('input[name="audio"]').files[0];
+      if (!texto && !audioFile) {
+        e.preventDefault();
+        alert("Por favor, escreve um comentário ou grava um áudio antes de publicar.");
+      }
+    });
+  }
+
+  const audioEl = document.querySelector('.audio-player');
+  if (audioEl) {
+    const bmUrl  = "{% url 'tfc:get_bookmark' audiolivro.id %}";
+    const setUrl = "{% url 'tfc:set_bookmark' audiolivro.id %}";
+
+    // recuperar posição salva
+    fetch(bmUrl, {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.position) {
+        const setPosition = () => {
+          if (audioEl.duration > data.position) {
+            audioEl.currentTime = data.position;
+          }
+          audioEl.removeEventListener('loadedmetadata', setPosition);
+        };
+        if (audioEl.readyState >= 1) {
+          setPosition();
+        } else {
+          audioEl.addEventListener('loadedmetadata', setPosition);
+        }
+      }
+    })
+    .catch(console.error);
+
+    function salvarBookmark() {
+      fetch(setUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'X-CSRFToken':  '{{ csrf_token }}',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          position: audioEl.currentTime.toFixed(1)
+        })
+      }).catch(console.error);
+    }
+
+    let lastSaved = 0;
+    audioEl.addEventListener('timeupdate', () => {
+      const now = Math.floor(audioEl.currentTime);
+      if (now - lastSaved >= 5) {
+        lastSaved = now;
+        salvarBookmark();
+      }
+    });
+    audioEl.addEventListener('pause', salvarBookmark);
+    window.addEventListener('beforeunload', salvarBookmark);
+  }
+
   document.querySelectorAll('.botao-editar-comentario').forEach(btn => {
     btn.addEventListener('click', () => {
       const container = btn.closest('.comentario');
       const staticDiv = container.querySelector('.comentario-texto-static');
+      if (!staticDiv || container.querySelector('textarea')) return;
 
-      if (container.querySelector('textarea')) return;
-
+      // cria textarea com o texto existente
       const textarea = document.createElement('textarea');
       textarea.className = 'comentario-texto';
       textarea.value = staticDiv.textContent.trim();
       textarea.style.width = '100%';
       textarea.rows = 3;
 
+      // botões Salvar e Cancelar
       const btnSalvar   = document.createElement('button');
       btnSalvar.textContent = '💾 Guardar';
       btnSalvar.type        = 'button';
@@ -136,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnCancelar.type        = 'button';
       btnCancelar.style.margin = '5px';
 
+      // insere no DOM
       staticDiv.style.display = 'none';
       staticDiv.parentNode.insertBefore(textarea, staticDiv.nextSibling);
       container.appendChild(btnSalvar);
@@ -156,7 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
           alert('O comentário não pode ficar vazio.');
           return;
         }
-
         if (novoTexto === original) {
           btnCancelar.click();
           return;
@@ -164,11 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fetch(btn.dataset.url, {
           method: 'POST',
+          credentials: 'same-origin',
           headers: {
             'X-CSRFToken': '{{ csrf_token }}',
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          credentials: 'same-origin',
           body: new URLSearchParams({ texto: novoTexto })
         })
         .then(r => r.json())
@@ -184,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   });
+
 });
 </script>
 {% endblock %}

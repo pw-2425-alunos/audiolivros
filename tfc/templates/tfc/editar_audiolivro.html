@@ -4,17 +4,71 @@
 {% block title %}Editar Audiolivro{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
+
 <div class="edit-audiolivro-page">
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <h1>Editar Audiolivro: {{ audiolivro.titulo }}</h1>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h2>Editar Audiolivro: {{ audiolivro.titulo }}</h2>
 
-        <div class="form-group">
-            {{ form.as_p }}
-        </div>
+    <label for="id_titulo">Título *</label>
+    {{ form.titulo }}
+    {% if form.titulo.errors %}
+      <div class="error-message">{{ form.titulo.errors|first }}</div>
+    {% endif %}
 
-        <button type="submit">Guardar Alterações</button>
-        <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
-    </form>
+    <label for="id_autor">Autor *</label>
+    {{ form.autor }}
+    {% if form.autor.errors %}
+      <div class="error-message">{{ form.autor.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_capa">Capa (imagem)</label>
+    {{ form.capa }}
+    {% if form.capa.errors %}
+      <div class="error-message">{{ form.capa.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_descricao">Descrição (texto) *</label>
+    {{ form.descricao }}
+    {% if form.descricao.errors %}
+      <div class="error-message">{{ form.descricao.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_descricaoAudio">Áudio de Descrição (opcional)</label>
+    {{ form.descricaoAudio }}
+    {% if form.descricaoAudio.errors %}
+      <div class="error-message">{{ form.descricaoAudio.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_categoria">Categoria *</label>
+    {{ form.categoria }}
+    {% if form.categoria.errors %}
+      <div class="error-message">{{ form.categoria.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_faixa_etaria">Faixa Etária *</label>
+    {{ form.faixa_etaria }}
+    {% if form.faixa_etaria.errors %}
+      <div class="error-message">{{ form.faixa_etaria.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_audio">Áudio Principal (wav/mp3)</label>
+    {{ form.audio }}
+    {% if form.audio.errors %}
+      <div class="error-message">{{ form.audio.errors|first }}</div>
+    {% endif %}
+
+    <label for="id_gravado_por">Gravado por (Família)</label>
+    {{ form.gravado_por }}
+    {% if form.gravado_por.errors %}
+      <div class="error-message">{{ form.gravado_por.errors|first }}</div>
+    {% endif %}
+
+    <div class="form-buttons">
+      <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+      <a href="{% url 'tfc:perfilFamilia' %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
 </div>
 {% endblock %}

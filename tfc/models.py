@@ -38,12 +38,13 @@ class AudioLivro(models.Model):
     titulo = models.CharField(max_length=200)
     autor = models.CharField(max_length=100)
     capa = models.ImageField(upload_to='capas/', null=True, blank=True)
-    descricao = models.TextField(null=True, blank=True)
+    descricao = models.TextField(max_length=500)
     descricaoAudio = models.FileField(upload_to='descricao_audios/', null=True, blank=True)
     categoria = models.CharField(max_length=100, choices=CATEGORIAS_CHOICES)
     faixa_etaria = models.CharField(max_length=50)
     audio = models.FileField(upload_to='audios/')
     gravado_por = models.ForeignKey('Familia', on_delete=models.SET_NULL, null=True, blank=True)
+    link_informacoes = models.URLField(max_length=200,null=True,blank=True,help_text="URL para mais informações (loja, Biblioteca Nacional, etc.)")
     publicado = models.BooleanField(default=False)
 
     @property

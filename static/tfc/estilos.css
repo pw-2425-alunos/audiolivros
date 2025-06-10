@@ -189,76 +189,125 @@ p {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #FF4500;
-    padding: 40px;
-    max-width: 900px;
+    margin: 40px auto;
+    background: #FFFDF0;
+    margin-top: 200px;
+    max-width: 600px;
     width: 90%;
     text-align: center;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Título da página de perfil */
-.contentorPerfil h1 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: white;
+
+.titulo-familia {
+    font-size: 2.5rem;
+    color: #D2691E;
+    margin-bottom: 1rem;
 }
 
-/* Seção de utilizadores */
+.secao-titulo {
+    font-size: 2rem;
+    color: #FFA500;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+/* ======= GRELHA DE MEMBROS ======= */
+
 .utilizadores-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    justify-items: center;
     margin-top: 30px;
 }
 
-/* Card de utilizador */
+/* ======= CARD DE MEMBRO ======= */
+
 .utilizador-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.2s ease-in-out;
+    background-color: rgb(255, 232, 200);
+    border-radius: 15px;
+    padding: 20px 15px;
+    width: 100%;
+    max-width: 260px;
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.3); /* brilho laranja suave */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease;
 }
 
 .utilizador-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
 }
 
-.utilizador-card img {
-    width: 100px;
-    height: 100px;
+/* ======= IMAGEM DO MEMBRO ======= */
+
+.utilizador-card img,
+.utilizador-card .sem-foto {
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 15px;
-}
-
-.utilizador-card p {
-    font-size: 1rem;
-    color: #333;
-    margin: 5px 0;
-}
-
-.utilizador-card p strong {
-    font-weight: bold;
-}
-
-.utilizador-card .sem-foto {
-    width: 100px;
-    height: 100px;
+    border: 3px solid #FFA500;
     background-color: #eee;
-    border-radius: 50%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    color: #777;
-    font-size: 14px;
+    justify-content: center;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+/* ======= TEXTO NO CARD ======= */
+
+.card-body {
+    margin-top: 10px;
+}
+
+.card-nome {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: rgb(210, 105, 30);
+    margin-bottom: 0.5rem;
+}
+
+.card-text {
+    font-size: 1.05rem;
+    color: rgb(210, 105, 30);
+}
+
+/* Mobile adjustments */
+
+@media (max-width: 600px) {
+    .utilizadores-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .titulo-familia {
+        font-size: 2rem;
+    }
+
+    .secao-titulo {
+        font-size: 1.6rem;
+    }
+
+    .utilizador-card img,
+    .utilizador-card .sem-foto {
+        width: 100px;
+        height: 100px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-text {
+        font-size: 1rem;
+    }
 }
 
 /* ================= FORMATAÇÃO DE BOTOES ================= */
@@ -278,6 +327,7 @@ p {
 .botao-perfil:hover {
     background-color: #FFC107;
 }
+
 
 /* ================= RESPONSIVIDADE (Mobile) ================= */
 @media (max-width: 768px) {
@@ -311,22 +361,6 @@ p {
     display: flex;
     justify-content: center;
     width: 100%;
-}
-
-.search-input {
-    width: 350px;  /* Largura maior */
-    height: 40px;  /* Altura adequada */
-    font-size: 18px;  /* Estilo de letra mais lúdico */
-    font-family: 'Comic Sans MS', sans-serif;  /* Fonte lúdica para crianças */
-    padding: 10px;
-    border-radius: 10px;
-    border: 2px solid #FFD700;  /* Cor de borda amarela */
-    transition: 0.3s;
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #FF4500;  /* Borda laranja ao focar */
 }
 
 }
@@ -389,22 +423,6 @@ p {
     width: 100%;
 }
 
-/* Estilo do campo de entrada da pesquisa */
-.search-form input {
-    padding: 12px 20px;
-    width: 35%;
-    max-width: 500pc;
-    border: 3px;
-    border-radius: 30px;
-    font-size: 20px;
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-.search-form input:focus {
-    border-color: #45a049;
-    box-shadow: 0 0 8px rgba(72, 239, 128, 0.7);
-}
 
 
 h1{
@@ -1333,7 +1351,7 @@ audio::-webkit-media-controls-panel {
   text-align: center;
   margin-top: 20px;
   font-size: 1.1rem;
-  color: #f44336;
+  color: #fff;
   font-weight: bold;
   text-decoration: none;
 }
@@ -1342,76 +1360,6 @@ audio::-webkit-media-controls-panel {
   text-decoration: underline;
 }
 
-
-/* ================= PERFIL MEMBRO PAGE ================= */
-.perfil-membro-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 200px 20px;
-  min-height: 100vh;
-}
-
-.membro {
-  background-color: #DAA520;
-  padding: 30px 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-}
-
-.membro-foto {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #D2691E;
-  margin-bottom: 20px;
-}
-
-.sem-foto {
-  width: 150px;
-  height: 150px;
-  background-color: #ccc;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  font-size: 1rem;
-  color: #555;
-  border: 3px solid #aaa;
-}
-
-.membro-nome {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 10px;
-}
-
-.membro p {
-  font-size: 1.2rem;
-  color: white;
-  margin: 6px 0;
-}
-
-.perfil-membro-container a {
-  margin-top: 15px;
-  text-decoration: none;
-  padding: 10px 20px;
-  background-color: #D2691E;
-  color: white;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.perfil-membro-container a:hover {
-  background-color: #a94f15;
-}
 
 
 /* ================= EDITAR PERFIL FAMÍLIA PAGE ================= */
@@ -1496,8 +1444,8 @@ audio::-webkit-media-controls-panel {
   display: block;
   text-align: center;
   margin-top: 20px;
-  font-size: 1.1rem;
-  color: #f44336;
+  font-size: 1.2rem;
+  color: #ffffff;
   font-weight: bold;
   text-decoration: none;
 }
@@ -1837,4 +1785,725 @@ audio::-webkit-media-controls-panel {
   .botao-publicar {
     width: auto;
   }
+}
+
+
+.editor-inline {
+  background: transparent;
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+
+.editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.editor-row .editor-label {
+  color: #fff;
+  font-size: 1rem;
+  min-width: 50px;
+}
+
+.editor-row input[type="range"] {
+  flex: 1;
+  height: 6px;
+}
+
+#start-time-editor,
+#end-time-editor {
+  color: white;
+  font-size: 1rem;
+  width: 40px;
+  text-align: right;
+}
+
+.editor-buttons button {
+  padding: 8px 18px;
+  font-size: 1rem;
+}
+
+
+#btnEditar:disabled {
+  background-color: #555 !important;
+  cursor: not-allowed;
+}
+
+
+/* ================= FORMULÁRIO DE CRIAR AUDIOLIVRO ================= */
+.add-audiolivro-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px; /* Espaço para o header fixo */
+  padding-bottom: 40px;
+  min-height: calc(100vh - 140px);
+  background-color: #1C1C1C;
+}
+
+.add-audiolivro-page form {
+  background-color: #DAA520;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: left;
+}
+
+.add-audiolivro-page h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.add-audiolivro-page label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.add-audiolivro-page input[type="text"],
+.add-audiolivro-page input[type="file"],
+.add-audiolivro-page select,
+.add-audiolivro-page textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.add-audiolivro-page input[type="text"]:focus,
+.add-audiolivro-page input[type="file"]:focus,
+.add-audiolivro-page select:focus,
+.add-audiolivro-page textarea:focus {
+  outline: none;
+  border-color: #FF4500;
+}
+
+.add-audiolivro-page .error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.add-audiolivro-page .btn {
+  display: inline-block;
+  width: auto;
+  padding: 12px 24px;
+  margin-top: 20px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.add-audiolivro-page .btn-primary {
+  background-color: #D2691E;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-audiolivro-page .btn-primary:hover {
+  background-color: #cc3700;
+  transform: translateY(-2px);
+}
+
+.add-audiolivro-page .btn-secondary {
+  background-color: red;
+  color: white;
+  border: none;
+  margin-top: 20px;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-audiolivro-page .btn-secondary:hover {
+  background-color: #888;
+  transform: translateY(-2px);
+}
+
+
+
+/* ================= EDITAR AUDIOLIVRO PAGE ================= */
+.edit-audiolivro-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px; /* Espaço para o header fixo */
+  padding-bottom: 40px;
+  min-height: calc(100vh - 140px);
+  background-color: #1C1C1C;
+}
+
+.edit-audiolivro-page form {
+  background-color: #DAA520;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: left;
+}
+
+.edit-audiolivro-page h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.edit-audiolivro-page label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.edit-audiolivro-page input[type="text"],
+.edit-audiolivro-page input[type="file"],
+.edit-audiolivro-page select,
+.edit-audiolivro-page textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.edit-audiolivro-page input[type="text"]:focus,
+.edit-audiolivro-page input[type="file"]:focus,
+.edit-audiolivro-page select:focus,
+.edit-audiolivro-page textarea:focus {
+  outline: none;
+  border-color: #FF4500;
+}
+
+.edit-audiolivro-page .error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.edit-audiolivro-page .form-buttons {
+  margin-top: 25px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.edit-audiolivro-page .btn {
+  display: inline-block;
+  width: auto;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+}
+
+.edit-audiolivro-page .btn-primary {
+  background-color: #D2691E;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-audiolivro-page .btn-primary:hover {
+  background-color: #cc3700;
+  transform: translateY(-2px);
+}
+
+.edit-audiolivro-page .btn-secondary {
+  background-color: red;
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-audiolivro-page .btn-secondary:hover {
+  background-color: #888;
+  transform: translateY(-2px);
+}
+
+
+@media (max-width: 743px) {
+
+  header#tituloSite {
+    padding: 10px 5px;
+    background-color: #FFD700;
+    position: relative;
+  }
+
+  header#tituloSite .logo-search {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  header#tituloSite .logo-link .logo-header {
+    height: 40px;
+    margin-right: 8px;
+    display: block;
+  }
+
+  header#tituloSite .search-form {
+    flex: 1;
+    margin: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  header#tituloSite .mobile-menu-toggle {
+    display: block;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  header#tituloSite .navbar {
+    display: none;
+  }
+
+  header#tituloSite .zoom-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  header#tituloSite .zoom-buttons button {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  header#tituloSite .mobile-nav-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 5px;
+    background-color: #FFD700;
+    border: 1px solid #e0be00;
+    border-radius: 4px;
+    z-index: 999;
+    min-width: 140px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  header#tituloSite .mobile-nav-dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+  }
+  header#tituloSite .mobile-nav-dropdown li {
+    padding: 8px 16px;
+    border-bottom: 1px solid #e0be00;
+  }
+  header#tituloSite .mobile-nav-dropdown li:last-child {
+    border-bottom: none;
+  }
+  header#tituloSite .mobile-nav-dropdown a {
+    text-decoration: none;
+    font-size: 16px;
+    color: black;
+    display: block;
+  }
+
+  .row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 15px;
+  }
+
+  .card-biblioteca {
+    height: 400px;
+  }
+  .card-biblioteca .card-img-top {
+    height: 200px;
+  }
+  .card-biblioteca .card-title {
+    font-size: 1.2rem;
+  }
+  .card-biblioteca .card-text {
+    font-size: 1.2rem;
+  }
+  .card-biblioteca audio {
+    max-width: 100%;
+  }
+
+  .card-detalhes {
+    max-width: 100%;
+    margin: 180px 10px 20px;
+    padding: 15px;
+  }
+  .card-detalhes .card-img-top {
+    height: 180px;
+  }
+  .card-detalhes .card-title {
+    font-size: 1.25rem;
+  }
+  .card-detalhes .card-text {
+    font-size: 0.9rem;
+  }
+
+  .comentario-texto {
+    font-size: 0.9rem;
+    padding: 8px;
+  }
+
+  .botoes-gravacao {
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .botao-gravar,
+  .botao-parar,
+  .botao-publicar {
+    font-size: 1rem;
+    padding: 8px 16px;
+  }
+  .botao-publicar {
+    width: auto;
+  }
+}
+
+.card-biblioteca{
+  text-decoration: none !important;
+  color: white;
+  font-size: 25px;
+}
+.card-link{
+    text-decoration: none !important;
+    color: white;
+    font-size: 20px;
+}
+
+.card-biblioteca .card-link h5,
+.card-biblioteca .card-link p {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-biblioteca .card-link:hover {
+  text-decoration: none !important;
+  color: inherit;
+}
+
+.btn-login {
+  background-color: #D2691E;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  margin: 0.625rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-login:hover {
+  background-color: #B35717;
+}
+
+.tutorial-texto ol,
+.tutorial-texto ul {
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.tutorial-texto ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+.tutorial-texto ul {
+  list-style-type: disc;
+  list-style-position: outside;
+}
+
+.tutorial-texto ol li,
+.tutorial-texto ul li {
+  margin-bottom: 8px;
+  padding-left: 5px;
+  text-indent: -5px;
+}
+
+.tutorial-texto ol li ul,
+.tutorial-texto ol li ol,
+.tutorial-texto ul li ol,
+.tutorial-texto ul li ul {
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.tutorial-texto ol li ul li,
+.tutorial-texto ul li ul li {
+  padding-left: 8px;
+  text-indent: -8px;
+}
+
+.tutorial-texto {
+  color: #f0f0f0;
+  font-family: 'Oswald', sans-serif;
+  line-height: 1.5;
+}
+
+.tutorial-texto h2 {
+  margin-top: 25px;
+  color: #FFD700;
+  font-size: 2rem;
+  border-bottom: 2px solid #FFD700;
+  padding-bottom: 8px;
+}
+
+.tutorial-texto ol {
+  list-style-type: decimal;
+  list-style-position: outside;
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.tutorial-texto ol li {
+  margin-bottom: 8px;
+  padding-left: 5px;
+  text-indent: -5px;
+}
+
+.tutorial-texto ol li ul {
+  list-style-type: disc;
+  list-style-position: outside;
+  margin-left: 20px;
+  padding-left: 0;
+}
+
+.tutorial-texto ol li ul li {
+  margin-bottom: 6px;
+  padding-left: 8px;
+  text-indent: -8px;
+}
+
+.mobile-menu-toggle,
+.mobile-nav-dropdown {
+  display: none;
+}
+
+/* ====================== ESTILOS GERAIS DO HEADER (desktop) ====================== */
+
+header#tituloSite {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #FFD700;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Oswald', sans-serif;
+}
+
+/* Container que agrupa logo + search + botão mobile (em desktop, apenas logo e search aparecem) */
+header#tituloSite .logo-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Logo principal */
+header#tituloSite .logo-header {
+  height: 70px;
+  object-fit: contain;
+}
+
+/* Barra de pesquisa (desktop) */
+header#tituloSite .search-form {
+  flex: 1;
+  max-width: 450px;
+}
+
+/* Botão “hamburger” mobile (ocultado no desktop) */
+header#tituloSite .mobile-menu-toggle {
+  display: none;
+}
+
+/* Botões de zoom */
+header#tituloSite .zoom-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 20px;
+}
+header#tituloSite .zoom-buttons button {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* Navbar principal (links desktop) */
+header#tituloSite .navbar {
+  display: flex;
+}
+header#tituloSite .nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 24px;
+}
+header#tituloSite .nav-list li a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+}
+header#tituloSite .nav-list li a i {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+/* Dropdown mobile (invisível no desktop) */
+header#tituloSite .mobile-nav-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #FFD700;
+  border-top: 1px solid #e0be00;
+  z-index: 999;
+}
+header#tituloSite .mobile-nav-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+header#tituloSite .mobile-nav-dropdown li {
+  padding: 10px 20px;
+  border-bottom: 1px solid #e0be00;
+}
+header#tituloSite .mobile-nav-dropdown li:last-child {
+  border-bottom: none;
+}
+header#tituloSite .mobile-nav-dropdown a {
+  text-decoration: none;
+  font-size: 16px;
+  color: black;
+}
+
+
+
+@media (max-width: 780px) {
+  header#tituloSite {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 10px;
+  }
+
+  /* Agrupa logo + search + botão toggle (hamburger) */
+  header#tituloSite .logo-search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 6px;
+  }
+
+  header#tituloSite .logo-header {
+    height: 40px;
+  }
+
+  header#tituloSite .search-form {
+    flex: 1;
+    margin-left: 8px;
+  }
+  header#tituloSite .search-input {
+    width: 100%;
+    height: 32px;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #fff;
+    outline: none;
+  }
+
+  /* Exibe o botão “hamburger” mobile */
+  header#tituloSite .mobile-menu-toggle {
+    display: block;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: black;
+  }
+
+  /* Oculta os botões de zoom agrupados (pode ficar visível se desejar) */
+  header#tituloSite .zoom-buttons {
+    margin-top: 6px;
+    justify-content: center;
+  }
+  header#tituloSite .zoom-buttons button {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+
+  /* Navbar (desktop) escondido no mobile */
+  header#tituloSite .navbar {
+    display: none;
+  }
+
+  /* Exibe o dropdown mobile abaixo */
+  header#tituloSite .mobile-nav-dropdown {
+    display: none; /* fica blocado apenas quando o JS dispara */
+  }
+}
+
+
+.search-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.search-form input {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  font-size: 1.25rem;
+  border: 2px solid #ccc;
+  border-radius: 1.5rem;
+  outline: none;
 }

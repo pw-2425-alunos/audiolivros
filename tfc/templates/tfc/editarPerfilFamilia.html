@@ -28,6 +28,8 @@
             <input type="file" name="apresentacao_familia">
         </label>
 
+        <a href="{% url 'tfc:alterar_password' %}" class="botao-acao">Deseja alterar a sua password?</a>
+
         <button type="submit">Guardar Alterações</button>
 
         <a href="{% url 'tfc:perfilFamilia' familia.id %}">Cancelar</a>

@@ -1,223 +1,184 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bem-vindo à Biblioteca de Audiolivros</title>
-    {% load static %}
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            font-family: 'Quicksand',sans-serif;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+{% extends 'tfc/layout.html' %}
 
-        header {
-            width: 100%;
-            padding: 1rem;
-            text-align: center;
-        }
+{% block title %}
+Bem-vindo à Biblioteca de Audiolivros
+{% endblock %}
 
-        .logo-ANGP {
-            width: 140px;
-            height: auto;
-        }
+{% block style %}
 
-        h1 {
-            font-size: 2rem;
-            margin: 1.5rem 1rem 0;
-            color: #FFD700;
-            text-shadow: 2px 2px 4px #000;
-            text-align: center;
-        }
+  #home-hero {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #fff;
+  }
+  #home-hero h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #FFD700;
+    text-shadow: 2px 2px 4px #000;
+    padding-top: 25px;
+  }
 
-        .abelha {
-            margin: 2rem 0;
-            width: 60vw;
-            max-width: 250px;
-            aspect-ratio: 1/1;
-            background: linear-gradient(to bottom, yellow, yellow 50%, black 50%, black);
-            border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            animation: abelhaAnimacao 3s infinite ease-in-out;
-        }
+  /* Abelha animada */
+  .abelha {
+    margin: 2rem auto;
+    width: 60vw;
+    max-width: 250px;
+    aspect-ratio: 1/1;
+    background: linear-gradient(to bottom, yellow 50%, black 50%);
+    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    animation: abelhaAnimacao 3s infinite ease-in-out;
+  }
+  .abelha::before,
+  .abelha::after {
+    content: "";
+    position: absolute;
+    background-color: #fff;
+    width: 30%;
+    height: 20%;
+    border-radius: 50%;
+    top: 60%;
+  }
+  .abelha::after {
+    right: -15%;
+    transform: rotate(-20deg);
+  }
+  .abelha::before {
+    left: -15%;
+    transform: rotate(20deg);
+  }
+  .cabeca {
+    width: 25%;
+    height: 25%;
+    background-color: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .olho {
+    width: 15px;
+    height: 15px;
+    background-color: #fff;
+    border-radius: 50%;
+    margin: 0 4px;
+    position: relative;
+  }
+  .olho::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 7px;
+    height: 7px;
+    background-color: #000;
+    border-radius: 50%;
+  }
+  .antena {
+    width: 4px;
+    height: 30px;
+    background-color: #000;
+    position: absolute;
+    top: -10%;
+  }
+  .antena.left {
+    left: 15%;
+    transform: rotate(-20deg);
+  }
+  .antena.right {
+    right: 15%;
+    transform: rotate(20deg);
+  }
+  @keyframes abelhaAnimacao {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+  }
 
-        .abelha::before, .abelha::after {
-            content: "";
-            position: absolute;
-            background-color: #fff;
-            width: 30%;
-            height: 20%;
-            border-radius: 50%;
-            top: 60%;
-        }
-        .abelha::after {
-            right: -15%;
-            transform: rotate(-20deg);
-        }
-        .abelha::before {
-            left: -15%;
-            transform: rotate(20deg);
-        }
+  /* ================== SEÇÃO SOBRE: ALINHAR TUDO AO CENTRO ================== */
+  #home-sobre {
+    text-align: center;    /* garante que todo texto e botões fiquem centralizados */
+    margin: 2rem auto;
+    max-width: 800px;
+  }
+  #home-sobre h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #FFD700;
+  }
+  #home-sobre p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: #fff;
+  }
+  #home-sobre a.btn-angp {
+    display: inline-block;   /* necessário para que o margin centralize corretamente */
+    font-size: 1rem;
+    color: #000;
+    background-color: #FFD700;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    margin-top: 0.5rem;      /* pequena folga acima do botão */
+  }
+  #home-sobre a.btn-angp:hover {
+    background-color: #FFC107;
+  }
 
-        .cabeca {
-            width: 25%;
-            height: 25%;
-            background-color: black;
-            border-radius: 50%;
-            position: absolute;
-            top: 20%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+  /* Ajustes responsivos */
+  @media (min-width: 768px) {
+    #home-hero h1 {
+      font-size: 3.5rem;
+    }
+    .btn-biblioteca {
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+    }
+    #home-sobre h2 {
+      font-size: 2.5rem;
+    }
+    #home-sobre p {
+      font-size: 1.125rem;
+    }
+  }
+{% endblock %}
 
-        .olho {
-            width: 15px;
-            height: 15px;
-            background-color: white;
-            border-radius: 50%;
-            margin: 0 4px;
-            position: relative;
-        }
-
-        .olho::after {
-            content: "";
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 7px;
-            height: 7px;
-            background-color: black;
-            border-radius: 50%;
-        }
-
-        .antena {
-            width: 4px;
-            height: 30px;
-            background-color: black;
-            position: absolute;
-            top: -10%;
-        }
-        .antena.left {
-            left: 15%;
-            transform: rotate(-20deg);
-        }
-        .antena.right {
-            right: 15%;
-            transform: rotate(20deg);
-        }
-
-        .botao-biblioteca {
-            margin: 2rem auto;
-            padding: 1rem 2rem;
-            font-size: 1.5rem;
-            background-color: #FFD700;
-            color: #000;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .botao-biblioteca:hover {
-            background-color: #FFC107;
-            transform: scale(1.05);
-        }
-
-        .contatos {
-            width: 90%;
-            max-width: 600px;
-            padding: 1.5rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            margin: 2rem 0;
-            font-size: 1rem;
-            line-height: 1.5;
-            text-align: center;
-        }
-
-        .contatos h2 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #FFD700;
-        }
-
-        .contatos h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            color: #FFFFFF;
-        }
-
-        @keyframes abelhaAnimacao {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-
-        /* Telas maiores (desktop/tablet) */
-        @media(min-width: 768px) {
-            h1 {
-                font-size: 3rem;
-            }
-            .botao-biblioteca {
-                font-size: 2rem;
-                padding: 1.2rem 3rem;
-            }
-            .contatos {
-                font-size: 1.2rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <img class="logo-ANGP" src="{% static 'tfc/angp.png' %}" alt="Logo ANGP" title="Associação Nacional de Glaucoma Pediátrico" />
-    </header>
-
-    <h1>Bem-Vindos à Biblioteca de Audiolivros</h1>
-
+{% block content %}
+  <section id="home-hero">
+    <h1>Bem-vindos à Aplicação de Audiolivros</h1>
     <div class="abelha" title="Abelhinha Amiga">
-        <div class="cabeca">
-            <div class="antena left"></div>
-            <div class="antena right"></div>
-            <div class="olho"></div>
-            <div class="olho"></div>
-        </div>
+      <div class="cabeca">
+        <div class="antena left"></div>
+        <div class="antena right"></div>
+        <div class="olho"></div>
+        <div class="olho"></div>
+      </div>
     </div>
+  </section>
 
-    <a href="{% url 'tfc:biblioteca' %}" class="botao-biblioteca">Vamos Ler Juntos!</a>
-
-    <div class="contatos">
-        <h2>Precisa de ajuda ou quer saber mais?</h2>
-        <p>
-            <h3>Contacte-nos:</h3>
-            carlotapbmontalvao02@gmail.com <br>
-            lucio.studer@ulusofona.pt <br>
-            thomazo2004@gmail.com <br>
-        </p>
-        <p>
-            <h3>A nossa missão é promover a leitura inclusiva e divertida para todas as crianças! </h3>
-
-            <h3>Creators:</h3>
-            Carlota Montalvão <br>
-            Lúcio Studer <br>
-            Tomás Silva <br>
-        </p>
-    </div>
-    <a href="https://anglaucomapediatrico.wordpress.com" target="_blank" rel="noopener noreferrer">
-        <h3>Visite a página da ANGP!</h3> <br>
+  <section id="home-sobre">
+    <h2>Sobre a App</h2>
+    <p>
+      Esta aplicação foi desenvolvida para oferecer um acervo acessível de audiolivros,
+      pensado especialmente para usuários com necessidades visuais. Navegue por diversos gêneros,
+      grave suas leituras preferidas e faça parte da comunidade da Associação Nacional de Glaucoma Pediátrico (ANGP).
+    </p>
+    <a href="https://anglaucomapediatrico.wordpress.com"
+       target="_blank"
+       rel="noopener noreferrer"
+       class="btn-angp">
+      <i class="bi bi-box-arrow-up-right"></i> Visitar a página da ANGP
     </a>
-
-</body>
-</html>
+  </section>
+{% endblock %}

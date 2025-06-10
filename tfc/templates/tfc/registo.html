@@ -4,6 +4,9 @@
 
 {% block content %}
 {% load static %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
 <div class="register-page">
     <div class="form-container">
         <h3>Criar Conta</h3>
@@ -22,9 +25,9 @@
             <input type="email" name="email" placeholder="Email" required>
 
             <label for="password">Password * </label>
-            <div style="position: relative;">
-                <input type="password" id="reg-password" name="password" placeholder="Senha" required style="width: 100%; padding-right: 40px;">
-                <button type="button" id="toggle-reg-password" style="
+            <div style="position: relative; width: 100%;">
+                <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
+                <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe" style="
                     position: absolute;
                     top: 45%;
                     transform: translateY(-50%);
@@ -37,8 +40,12 @@
                     font-size: 18px;
                     padding: 0;
                     margin: 0;
-                ">👁️</button>
+                    color: #555;
+                ">
+                <i id="eye-icon" class="bi bi-eye-slash"></i>
+                </button>
             </div>
+
 
             <label for="foto">Foto da Família (opcional)</label>
             <input type="file" name="foto" accept="image/*">
@@ -49,17 +56,21 @@
             <input type="submit" value="Criar Conta">
         </form>
 
-        <p class="login-prompt">Já tem uma conta? <a href="{% url 'tfc:login' %}">Entrar</a></p>
+        <p class="login-prompt"> <a>Já tem uma conta? </a></p>
+            <h2><a href="{% url 'tfc:login' %}" style="color: white;">Entrar</a></h2>
+        </p>
     </div>
 </div>
 
 <script>
-    const toggleRegPassword = document.getElementById("toggle-reg-password");
-    const regPasswordInput = document.getElementById("reg-password");
+  const toggleBtn = document.getElementById("toggle-password");
+  const passwordInput = document.getElementById("password");
+  const eyeIcon = document.getElementById("eye-icon");
 
-    toggleRegPassword.addEventListener("click", function () {
-        const type = regPasswordInput.getAttribute("type") === "password" ? "text" : "password";
-        regPasswordInput.setAttribute("type", type);
-    });
+  toggleBtn.addEventListener("click", () => {
+    const isVisible = passwordInput.type === "text";
+    passwordInput.type = isVisible ? "password" : "text";
+    eyeIcon.className = isVisible ? "bi bi-eye-slash" : "bi bi-eye";
+  });
 </script>
 {% endblock %}

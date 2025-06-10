@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://kit.fontawesome.com/4c944539b7.js" crossorigin="anonymous"></script>
 
     <style>
@@ -20,12 +21,15 @@
 <body>
     <div class="contentor">
         <header id="tituloSite">
-            <a href="{% url 'tfc:home' %}" class="logo-link">
-                <img src="{% static 'tfc/angp.png' %}" alt="Logo ANGP" class="logo-header">
-            </a>
+        <div class="logo-search">
+            <img src="{% static 'tfc/angp.png' %}" alt="Logo ANGP" class="logo-header">
             <form method="get" action="{% url 'tfc:biblioteca' %}" class="search-form">
                 <input type="text" name="q" placeholder="Pesquisar um Audiolivro" value="{{ request.GET.q }}" class="search-input">
             </form>
+            <button class="mobile-menu-toggle" aria-label="Abrir menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
 
             <div class="zoom-buttons">
                 <button id="zoomIn" title="Aumentar Zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
@@ -34,17 +38,36 @@
 
 
            <nav class="navbar">
-                <ul class="nav-list">
-                    <li><a href="{% url 'tfc:biblioteca' %}"><i class="fa-solid fa-book"></i><span>Biblioteca</span></a></li>
-                    <li><a href="{% url 'tfc:gravar' %}"><i class="fa-solid fa-microphone"></i><span>Gravar</span></a></li>
-                    {% if request.user.is_authenticated %}
-                        <li><a href="{% url 'tfc:perfilFamilia' %}"><i class="fa-solid fa-user"></i><span>Família</span></a></li>
-                        <li><a href="{% url 'tfc:logout' %}"><i class="fa-solid fa-sign-out-alt"></i><span>Logout</span></a></li>
-                    {% else %}
-                        <li><a href="{% url 'tfc:login' %}"><i class="fa-solid fa-user"></i><span>Login</span></a></li>
-                    {% endif %}
-                </ul>
-            </nav>
+            <ul class="nav-list">
+                <li><a href="{% url 'tfc:tutorial' %}"><i class="fa-solid fa-chalkboard-teacher"></i><span>Tutorial</span></a></li>
+                <li><a href="{% url 'tfc:sobre' %}"><i class="fa-solid fa-info-circle"></i><span>Sobre</span></a></li>
+                <li><a href="{% url 'tfc:biblioteca' %}"><i class="fa-solid fa-book"></i><span>Biblioteca</span></a></li>
+                <li><a href="{% url 'tfc:gravar' %}"><i class="fa-solid fa-microphone"></i><span>Gravar</span></a></li>
+                {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'tfc:perfilFamilia' %}"><i class="fa-solid fa-user"></i><span>Família</span></a></li>
+                    <li><a href="{% url 'tfc:logout' %}"><i class="fa-solid fa-sign-out-alt"></i><span>Logout</span></a></li>
+                {% else %}
+                    <li><a href="{% url 'tfc:login' %}"><i class="fa-solid fa-user"></i><span>Login</span></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+
+
+
+        <div class="mobile-nav-dropdown">
+            <ul>
+                <li><a href="{% url 'tfc:tutorial' %}">Tutorial</a></li>
+                <li><a href="{% url 'tfc:sobre' %}">Sobre</a></li>
+                <li><a href="{% url 'tfc:biblioteca' %}">Biblioteca</a></li>
+                <li><a href="{% url 'tfc:gravar' %}">Gravar</a></li>
+                {% if request.user.is_authenticated %}
+                    <li><a href="{% url 'tfc:perfilFamilia' %}">Família</a></li>
+                    <li><a href="{% url 'tfc:logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'tfc:login' %}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
 
         </header>
 
@@ -54,6 +77,29 @@
         </main>
     </div>
     <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggleBtn = document.querySelector(".mobile-menu-toggle");
+      const dropdown = document.querySelector(".mobile-nav-dropdown");
+
+      if (toggleBtn && dropdown) {
+        toggleBtn.addEventListener("click", () => {
+          if (dropdown.style.display === "block") {
+            dropdown.style.display = "none";
+          } else {
+            dropdown.style.display = "block";
+          }
+        });
+    document.addEventListener("click", (ev) => {
+          if (
+            !toggleBtn.contains(ev.target) &&
+            !dropdown.contains(ev.target)
+          ) {
+            dropdown.style.display = "none";
+          }
+        });
+      }
+    });
+
   document.addEventListener('DOMContentLoaded', () => {
 
     let zoomLevel = 1.0;

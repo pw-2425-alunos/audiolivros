@@ -52,14 +52,7 @@
                                         <img src="{{ audio.capa.url }}" class="card-img-top" alt="Capa de {{ audio.titulo }}">
                                         <div class="card-body">
                                             <h5 class="card-title">{{ audio.titulo }}</h5>
-                                            {% if audio.descricaoAudio %}
-                                                <audio controls>
-                                                <source src="{{ audio.descricaoAudio.url }}" type="audio/mpeg">
-                                                O seu navegador não suporta áudio.
-                                                </audio>
-                                            {% else %}
-                                                <p class="card-text">{{ audio.descricao|truncatewords:10 }}</p>
-                                            {% endif %}
+                                                <p class="card-text">{{ audio.gravado_por.nome }}</p>
                                         </div>
                                     </a>
                                 </div>

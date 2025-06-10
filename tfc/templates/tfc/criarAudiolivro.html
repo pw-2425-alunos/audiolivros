@@ -4,27 +4,69 @@
 
 {% block content %}
 {% load static %}
-<div class="container">
-    <div class="form-wrapper">
-        <h2 class="title">Novo Audiolivro</h2>
+<link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
-        <form action="" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+<div class="add-audiolivro-page">
+  <form action="" method="post" enctype="multipart/form-data">
+    <h2>Criar Novo Audiolivro</h2>
+    {% csrf_token %}
 
-            {% for field in form %}
-            <div class="form-group">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <div class="error-message">
-                    {{ field.errors|first }}
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
+    <label for="{{ form.titulo.id_for_label }}">Título *</label>
+    {{ form.titulo }}
+    {% if form.titulo.errors %}
+      <div class="error-message">{{ form.titulo.errors|first }}</div>
+    {% endif %}
 
-            <button type="submit" class="submit-btn">Criar Audiolivro</button>
-        </form>
-    </div>
+    <label for="{{ form.autor.id_for_label }}">Autor *</label>
+    {{ form.autor }}
+    {% if form.autor.errors %}
+      <div class="error-message">{{ form.autor.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.capa.id_for_label }}">Capa do Audiolivro *</label>
+    {{ form.capa }}
+    {% if form.capa.errors %}
+      <div class="error-message">{{ form.capa.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.descricao.id_for_label }}">Descrição (texto) *</label>
+    {{ form.descricao }}
+    {% if form.descricao.errors %}
+      <div class="error-message">{{ form.descricao.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.link_informacoes.id_for_label }}">Link para mais informações (opcional)</label>
+    {{ form.link_informacoes }}
+    {% if form.link_informacoes.errors %}
+      <div class="error-message">{{ form.link_informacoes.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.descricaoAudio.id_for_label }}">Áudio de Descrição (opcional)</label>
+    {{ form.descricaoAudio }}
+    {% if form.descricaoAudio.errors %}
+      <div class="error-message">{{ form.descricaoAudio.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.categoria.id_for_label }}">Categoria *</label>
+    {{ form.categoria }}
+    {% if form.categoria.errors %}
+      <div class="error-message">{{ form.categoria.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.faixa_etaria.id_for_label }}">Faixa Etária *</label>
+    {{ form.faixa_etaria }}
+    {% if form.faixa_etaria.errors %}
+      <div class="error-message">{{ form.faixa_etaria.errors|first }}</div>
+    {% endif %}
+
+    <label for="{{ form.audio.id_for_label }}">Áudio Principal (wav/mp3) *</label>
+    {{ form.audio }}
+    {% if form.audio.errors %}
+      <div class="error-message">{{ form.audio.errors|first }}</div>
+    {% endif %}
+
+    <button type="submit" class="btn btn-primary">Criar Audiolivro</button>
+    <a href="{% url 'tfc:biblioteca' %}" class="btn btn-secondary" style="margin-left: 10px;">Cancelar</a>
+  </form>
 </div>
 {% endblock %}

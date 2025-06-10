@@ -1,0 +1,41 @@
+{% extends "tfc/layout.html" %}
+
+{% block title %}Tutorial{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<div class="tutorial-container">
+  {# Seção do vídeo em destaque #}
+  <div class="tutorial-video">
+    <iframe
+      width="100%"
+      height="450"
+      src="{{ video_embed_url }}"
+      title="Vídeo de Tutorial"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <div class="tutorial-texto">
+    <h2>Como Utilizar</h2><br>
+    <ol>
+      <li> Registe-se primeiro com numa conta familia ou faça login se já tiver conta (com nome de utilizador/senha OU via Google).</li>
+      <li> No menu superior, escolha “Gravar” para:
+        <ul>
+          <li> Gravar um audiolivro em tempo real: clique no botão ▶️ para iniciar, pause/com ▶️/⏸️ e pare com ⏹️.</li>
+          <li> Ou envie um ficheiro já gravado no seu Pc/elemóvel.</li>
+        </ul>
+      </li>
+      <li> Após gravar, clique em “Criar Audiolivro a partir desta gravação” para criar o audiolivro preencher título, capa, descrição, etc.</li>
+      <li> Após criar, vá sua página de perfil e edite o audiolivro gravado de forma a preencher título, capa, descrição, etc. Quando estiver pronto clique no botão "Publicar"</li>
+      <li> Em “Biblioteca” poderá ver todos os audiolivros disponíveis organizados por categorias.</li>
+      <li> Clique num Audiolivro para ver os seus detalhes: ouvir, avaliar e fazer um comentário em texto ou áudio.</li>
+      <li> Nos detalhes de um audiolivro, o leitor grava automaticamente o seu “bookmark” e retoma a reprodução de onde parou.</li>
+      <li> No perfil familía, pode adicionar/editar/remover membros e ver os audiolivros que sua família gravou.</li>
+    </ol>
+  </div>
+</div>
+{% endblock %}

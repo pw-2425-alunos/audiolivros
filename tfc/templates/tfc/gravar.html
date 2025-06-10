@@ -6,133 +6,377 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
-
 <div class="gravar-bg">
-<div class="contentorGravar">
-  <h1>Gravar Audiolivro</h1>
+  <div class="contentorGravar">
+    <h1>Gravar Audiolivro</h1>
+    {% if not request.user.is_authenticated %}
+      <div style="color: white; text-align: center; margin: 30px 0;">
+        <p style="color: white;">
+          Esta funcionalidade só está disponível para utilizadores autenticados.
+        </p>
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+          <a href="{% url 'tfc:login' %}" class="btn-login">
+            Fazer Login
+          </a>
+        </div>
+      </div>
+    {% else %}
+      {# Usuário está autenticado: mostra toda a interface de gravação #}
 
-  <p style="color: white;">
-    Nesta página, podes gravar diretamente um audiolivro ou submeter um ficheiro de áudio pré-gravado.
-    Para poderes criar ou submeter, deves estar logado numa conta da familía.
-  </p>
+      <p style="color: white;">
+        Nesta página, podes gravar diretamente um audiolivro ou submeter um ficheiro de áudio pré-gravado.
+        Como estás autenticado, tens acesso completo a estas funcionalidades.
+      </p>
 
-  <a href="{% url 'tfc:criarAudiolivro' %}" class="submit-audio-btn mb-3"
-    {% if not request.user.is_authenticated %}disabled title="Faz login para submeter"{% endif %}>
-    📁 Submeter áudio existente
-  </a>
+      <a href="{% url 'tfc:criarAudiolivro' %}" class="submit-audio-btn mb-3">
+        📁 Submeter áudio existente
+      </a>
 
+      <div class="btns-container" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; margin-top: 15px;">
+        <button id="btnToggle" class="btn btn-primary">
+          ▶️ Gravar
+        </button>
+        <button id="btnStop" class="btn btn-danger" disabled>
+          ⏹️ Acabar
+        </button>
+      </div>
 
-  <button id="start" class="btn btn-primary"
-          {% if not request.user.is_authenticated %}disabled title="Faz login para gravar"{% endif %}>
-    Iniciar Gravação
-  </button>
-  <button id="pause" class="btn btn-warning" disabled
-          {% if not request.user.is_authenticated %}disabled{% endif %}>
-    Pausar Gravação
-  </button>
-  <button id="stop" class="btn btn-danger" disabled
-          {% if not request.user.is_authenticated %}disabled{% endif %}>
-    Parar Gravação
-  </button>
+      <div id="snippetsContainer" style="margin: 10px 0;"></div>
 
-  <audio id="player" controls class="d-block mt-3"></audio>
+      <audio id="player" controls class="d-block mt-3"></audio>
 
-  <br>
+      <div style="text-align: center; margin-bottom: 12px;">
+        <button id="btnMerge" class="btn btn-info">🔗 Juntar Audios</button>
+      </div>
 
-  <button id="goToCriar" class="btn btn-success mt-3" disabled
-          {% if not request.user.is_authenticated %}disabled title="Faz login para criar"{% endif %}>
-    Criar Audiolivro a partir desta gravação
-  </button>
+      <div id="editorTriggerContainer" style="text-align: center; margin-top: 15px;">
+        <button id="btnEditar" class="btn btn-secondary" disabled title="Só disponível após gravar">
+          ✂️ Editar Gravação
+        </button>
+      </div>
 
+      <div id="editorInline" class="editor-inline" style="display: none; margin-top: 20px;">
+        <div class="editor-row">
+          <span class="editor-label">Início:</span>
+          <span id="start-time-editor">0.00</span> s
+          <input type="range" id="start-slider" min="0" step="0.1" disabled>
+        </div>
+        <div class="editor-row">
+          <span class="editor-label">Fim:</span>
+          <span id="end-time-editor">0.00</span> s
+          <input type="range" id="end-slider" min="0" step="0.1" disabled>
+        </div>
+        <div class="editor-buttons" style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+          <button id="crop" class="btn btn-primary" disabled>✂️ Cortar</button>
+          <button id="download" class="btn btn-success" disabled>⬇️ Baixar</button>
+          <button id="fecharEditor" class="btn btn-light">✖️ Fechar</button>
+        </div>
+      </div>
 
+      <br>
+
+      <button id="goToCriar" class="btn btn-success mt-3" disabled>
+        Criar Audiolivro a partir desta gravação
+      </button>
+    {% endif %}
+  </div>
 </div>
-</div>
 
-<script>
-  const isLogged = {{ request.user.is_authenticated|yesno:"true,false" }};
+{% if request.user.is_authenticated %}
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Aqui só roda o script se o usuário estiver autenticado
+    const isLogged          = true;
+    const btnToggle         = document.getElementById('btnToggle');
+    const btnStop           = document.getElementById('btnStop');
+    const audioPlayer       = document.getElementById('player');
+    const goToCriar         = document.getElementById('goToCriar');
+    const editorBtn         = document.getElementById('btnEditar');
+    const editorInline      = document.getElementById('editorInline');
+    const fecharEditor      = document.getElementById('fecharEditor');
+    const snippetsContainer = document.getElementById('snippetsContainer');
+    const btnMerge          = document.getElementById('btnMerge');
 
-  const startButton = document.getElementById('start');
-  const pauseButton = document.getElementById('pause');
-  const stopButton  = document.getElementById('stop');
-  const audioPlayer = document.getElementById('player');
-  const goToCriarButton = document.getElementById('goToCriar');
+    let mediaRecorder;
+    let audioContext   = new (window.AudioContext || window.webkitAudioContext)();
+    let recordings     = [];     // Array de Blobs, cada um é um trecho gravado
+    let mergedBuffer   = null;   // AudioBuffer após unir todos os trechos
+    let audioBuffer    = null;   // AudioBuffer a ser usado para sliders (trim)
+    let croppedBuffer  = null;   // AudioBuffer resultante de corte
 
-  let mediaRecorder, audioChunks = [], recordedAudioBlob;
+    const startSlider = document.getElementById('start-slider');
+    const endSlider   = document.getElementById('end-slider');
+    const startLabel  = document.getElementById('start-time-editor');
+    const endLabel    = document.getElementById('end-time-editor');
+    const cropBtn     = document.getElementById('crop');
+    const downloadBtn = document.getElementById('download');
 
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then((stream) => {
-      mediaRecorder = new MediaRecorder(stream);
-
-      mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-
-      mediaRecorder.onstop = () => {
-        recordedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        audioChunks = [];
-        const url = URL.createObjectURL(recordedAudioBlob);
-        audioPlayer.src = url; audioPlayer.load();
-        if (isLogged) goToCriarButton.disabled = false;
-      };
-
-      mediaRecorder.onpause = () => console.log("Gravação pausada.");
-      mediaRecorder.onresume= () => console.log("Gravação retomada.");
-    })
-    .catch((error) => {
-      console.error('Erro ao acessar o microfone:', error);
-      alert('É necessário permitir acesso ao microfone.');
-    });
-
-  startButton.addEventListener('click', () => {
-    if (!isLogged) return;
-    mediaRecorder.start();
-    startButton.disabled = true;
-    pauseButton.disabled = false;
-    stopButton.disabled  = false;
-    startButton.textContent = 'Gravando...';
-  });
-
-  pauseButton.addEventListener('click', () => {
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.pause(); pauseButton.textContent = 'Retomar Gravação';
-    } else {
-      mediaRecorder.resume(); pauseButton.textContent = 'Pausar Gravação';
-    }
-  });
-
-  stopButton.addEventListener('click', () => {
-    mediaRecorder.stop();
-    startButton.disabled = false;
-    pauseButton.disabled = true;
-    stopButton.disabled  = true;
-    startButton.textContent = 'Iniciar Nova Gravação';
-  });
-
-  goToCriarButton.addEventListener('click', () => {
-    if (!isLogged) return;
-
-    if (!recordedAudioBlob) {
-      window.location.href = "{% url 'tfc:criarAudiolivro' %}";
-      return;
-    }
-    const formData = new FormData();
-    formData.append('audio', recordedAudioBlob, 'gravacao.webm');
-
-    fetch("{% url 'tfc:criarAudiolivroInline' %}", {
-      method: 'POST',
-      body: formData,
-      headers: {'X-CSRFToken': '{{ csrf_token }}'}
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        window.location.href = "{% url 'tfc:criarAudiolivroInline' %}?audio=" + encodeURIComponent(data.audio_url);
-      } else {
-        alert('Gravação enviada. Podes agora completar os detalhes.');
+    // Converte um AudioBuffer em Blob WAV
+    function bufferToBlob(buffer) {
+      const numChan = buffer.numberOfChannels;
+      const length  = buffer.length;
+      const result  = new Float32Array(length * numChan);
+      let idx = 0;
+      for (let i = 0; i < length; i++) {
+        for (let c = 0; c < numChan; c++) {
+          result[idx++] = buffer.getChannelData(c)[i];
+        }
       }
-    })
-    .catch(err => {
-      console.error('Erro:', err);
-      alert('Ocorreu um erro no envio.');
+      const wavView = encodeWAV(result, buffer.sampleRate, numChan);
+      return new Blob([wavView], { type: 'audio/wav' });
+    }
+
+    function encodeWAV(samples, sampleRate, numChan) {
+      const bytesPerSample = 2;
+      const blockAlign     = numChan * bytesPerSample;
+      const buffer         = new ArrayBuffer(44 + samples.length * bytesPerSample);
+      const view           = new DataView(buffer);
+
+      function writeString(v, off, str) {
+        for (let i = 0; i < str.length; i++) {
+          v.setUint8(off + i, str.charCodeAt(i));
+        }
+      }
+
+      writeString(view, 0,   'RIFF');
+      view.setUint32(4,  36 + samples.length * bytesPerSample, true);
+      writeString(view, 8,   'WAVE');
+      writeString(view, 12,  'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, numChan, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * blockAlign, true);
+      view.setUint16(32, blockAlign, true);
+      view.setUint16(34, 16, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, samples.length * bytesPerSample, true);
+
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+      return view;
+    }
+
+    function updateSegmentsCount() {;
+    }
+
+    function appendSnippetToList(blob, index) {
+      const wrapper = document.createElement('div');
+      wrapper.style.marginBottom = '8px';
+      wrapper.style.display      = 'flex';
+      wrapper.style.alignItems   = 'center';
+      wrapper.style.gap          = '8px';
+
+      const label = document.createElement('span');
+      label.textContent = `Audio ${index + 1}:`;
+      label.style.color = 'white';
+
+      const audioEl = document.createElement('audio');
+      audioEl.controls = true;
+      audioEl.src      = URL.createObjectURL(blob);
+      audioEl.style.width = '180px';
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(audioEl);
+      snippetsContainer.appendChild(wrapper);
+    }
+
+    async function mergeRecordings() {
+      if (recordings.length === 0) return null;
+      const buffers = [];
+      for (let blob of recordings) {
+        const arrayBuffer = await blob.arrayBuffer();
+        const decoded     = await audioContext.decodeAudioData(arrayBuffer);
+        buffers.push(decoded);
+      }
+      const numChan = buffers[0].numberOfChannels;
+      const sr      = buffers[0].sampleRate;
+      let totalLen  = buffers.reduce((sum, b) => sum + b.length, 0);
+
+      const merged = audioContext.createBuffer(numChan, totalLen, sr);
+      let offset = 0;
+      for (let b of buffers) {
+        for (let c = 0; c < numChan; c++) {
+          merged.copyToChannel(b.getChannelData(c), c, offset);
+        }
+        offset += b.length;
+      }
+      return merged;
+    }
+
+    function updateSliderLabels() {
+      const s = parseFloat(startSlider.value).toFixed(2);
+      const e = parseFloat(endSlider.value).toFixed(2);
+      startLabel.textContent = s;
+      endLabel.textContent   = e;
+      cropBtn.disabled = (parseFloat(s) >= parseFloat(e));
+    }
+    startSlider.addEventListener('input', updateSliderLabels);
+    endSlider.addEventListener('input', updateSliderLabels);
+
+    function setupRecording() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          let audioChunks = [];
+
+          mediaRecorder.addEventListener('dataavailable', e => {
+            audioChunks.push(e.data);
+          });
+
+          mediaRecorder.addEventListener('stop', () => {
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            audioChunks = [];
+            recordings.push(blob);
+
+            appendSnippetToList(blob, recordings.length - 1);
+            updateSegmentsCount();
+
+            audioPlayer.src = URL.createObjectURL(blob);
+            audioPlayer.load();
+
+            goToCriar.disabled = (recordings.length === 0);
+          });
+
+          btnToggle.addEventListener('click', () => {
+            if (mediaRecorder.state === 'inactive') {
+              audioChunks = [];
+              mediaRecorder.start();
+              btnToggle.textContent = '⏸️ Pausar';
+              btnStop.disabled     = false;
+            }
+            else if (mediaRecorder.state === 'recording') {
+              mediaRecorder.pause();
+              btnToggle.textContent = '▶️ Retomar';
+            }
+            else if (mediaRecorder.state === 'paused') {
+              mediaRecorder.resume();
+              btnToggle.textContent = '⏸️ Pausar';
+            }
+          });
+
+          btnStop.addEventListener('click', () => {
+            if (mediaRecorder.state === 'paused') {
+              mediaRecorder.resume();
+            }
+            mediaRecorder.stop();
+            btnToggle.textContent = '▶️ Gravar';
+            btnToggle.disabled    = false;
+            btnStop.disabled      = true;
+          });
+        })
+        .catch(error => {
+          console.error('Erro ao acessar o microfone:', error);
+          alert('É necessário permitir acesso ao microfone para gravar.');
+          btnToggle.disabled = true;
+          btnStop.disabled   = true;
+        });
+    }
+
+    if (navigator.mediaDevices) {
+      setupRecording();
+    }
+
+    btnMerge.addEventListener('click', async () => {
+      if (recordings.length === 0) return;
+
+      mergedBuffer = await mergeRecordings();
+      if (!mergedBuffer) {
+        alert('Não foi possível unir as gravações.');
+        return;
+      }
+
+      const mergedBlob = bufferToBlob(mergedBuffer);
+      audioPlayer.src = URL.createObjectURL(mergedBlob);
+      audioPlayer.load();
+
+      audioBuffer = mergedBuffer;
+      startSlider.disabled = false;
+      endSlider.disabled   = false;
+      startSlider.max      = mergedBuffer.duration.toFixed(1);
+      endSlider.max        = mergedBuffer.duration.toFixed(1);
+      startSlider.value    = 0;
+      endSlider.value      = mergedBuffer.duration.toFixed(1);
+      updateSliderLabels();
+
+      editorBtn.disabled = false;
+    });
+
+    editorBtn.addEventListener('click', () => {
+      editorInline.style.display = 'block';
+      cropBtn.disabled           = false;
+    });
+
+    cropBtn.addEventListener('click', () => {
+      const s = parseFloat(startSlider.value);
+      const e = parseFloat(endSlider.value);
+      const sr = audioBuffer.sampleRate;
+      const startSample = Math.floor(s * sr);
+      const endSample   = Math.floor(e * sr);
+      const length      = endSample - startSample;
+
+      croppedBuffer = audioContext.createBuffer(
+        audioBuffer.numberOfChannels,
+        length,
+        sr
+      );
+      for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
+        const dataChan = audioBuffer.getChannelData(c).slice(startSample, endSample);
+        croppedBuffer.copyToChannel(dataChan, c, 0);
+      }
+
+      const croppedBlob = bufferToBlob(croppedBuffer);
+      const croppedURL  = URL.createObjectURL(croppedBlob);
+      audioPlayer.src   = croppedURL;
+      audioPlayer.play();
+
+      downloadBtn.disabled = false;
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      const blob = bufferToBlob(croppedBuffer || audioBuffer);
+      const link = document.createElement('a');
+      link.href   = URL.createObjectURL(blob);
+      link.download = 'trecho_cortado.wav';
+      link.click();
+    });
+
+    fecharEditor.addEventListener('click', () => {
+      editorInline.style.display = 'none';
+    });
+
+    goToCriar.addEventListener('click', () => {
+      if (!mergedBuffer) {
+        alert('Primeiro junta os trechos usando 🔗 Juntar Audios.');
+        return;
+      }
+      const finalBlob = croppedBuffer ? bufferToBlob(croppedBuffer) : bufferToBlob(mergedBuffer);
+      const formData = new FormData();
+      formData.append('audio', finalBlob, 'audiolivro_final.wav');
+
+      fetch("{% url 'tfc:criarAudiolivroInline' %}", {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = "{% url 'tfc:criarAudiolivroInline' %}?audio="
+                                 + encodeURIComponent(data.audio_url);
+        } else {
+          alert('Áudio enviado. Podes agora completar os detalhes.');
+        }
+      })
+      .catch(err => {
+        console.error('Erro:', err);
+        alert('Ocorreu um erro no envio.');
+      });
     });
   });
-</script>
+  </script>
+{% endif %}
 {% endblock %}

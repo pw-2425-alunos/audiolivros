@@ -189,76 +189,125 @@ p {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #FF4500;
-    padding: 40px;
-    max-width: 900px;
+    margin: 40px auto;
+    background: #FFFDF0;
+    margin-top: 200px;
+    max-width: 600px;
     width: 90%;
     text-align: center;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Título da página de perfil */
-.contentorPerfil h1 {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: white;
+
+.titulo-familia {
+    font-size: 2.5rem;
+    color: #D2691E;
+    margin-bottom: 1rem;
 }
 
-/* Seção de utilizadores */
+.secao-titulo {
+    font-size: 2rem;
+    color: #FFA500;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+/* ======= GRELHA DE MEMBROS ======= */
+
 .utilizadores-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+    justify-items: center;
     margin-top: 30px;
 }
 
-/* Card de utilizador */
+/* ======= CARD DE MEMBRO ======= */
+
 .utilizador-card {
-    background-color: #fff;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.2s ease-in-out;
+    background-color: rgb(255, 232, 200);
+    border-radius: 15px;
+    padding: 20px 15px;
+    width: 100%;
+    max-width: 260px;
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.3); /* brilho laranja suave */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease;
 }
 
 .utilizador-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-5px);
 }
 
-.utilizador-card img {
-    width: 100px;
-    height: 100px;
+/* ======= IMAGEM DO MEMBRO ======= */
+
+.utilizador-card img,
+.utilizador-card .sem-foto {
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 15px;
-}
-
-.utilizador-card p {
-    font-size: 1rem;
-    color: #333;
-    margin: 5px 0;
-}
-
-.utilizador-card p strong {
-    font-weight: bold;
-}
-
-.utilizador-card .sem-foto {
-    width: 100px;
-    height: 100px;
+    border: 3px solid #FFA500;
     background-color: #eee;
-    border-radius: 50%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    color: #777;
-    font-size: 14px;
+    justify-content: center;
+    font-weight: bold;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+/* ======= TEXTO NO CARD ======= */
+
+.card-body {
+    margin-top: 10px;
+}
+
+.card-nome {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: rgb(210, 105, 30);
+    margin-bottom: 0.5rem;
+}
+
+.card-text {
+    font-size: 1.05rem;
+    color: rgb(210, 105, 30);
+}
+
+/* Mobile adjustments */
+
+@media (max-width: 600px) {
+    .utilizadores-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .titulo-familia {
+        font-size: 2rem;
+    }
+
+    .secao-titulo {
+        font-size: 1.6rem;
+    }
+
+    .utilizador-card img,
+    .utilizador-card .sem-foto {
+        width: 100px;
+        height: 100px;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+    }
+
+    .card-text {
+        font-size: 1rem;
+    }
 }
 
 /* ================= FORMATAÇÃO DE BOTOES ================= */
@@ -278,6 +327,7 @@ p {
 .botao-perfil:hover {
     background-color: #FFC107;
 }
+
 
 /* ================= RESPONSIVIDADE (Mobile) ================= */
 @media (max-width: 768px) {
@@ -1333,7 +1383,7 @@ audio::-webkit-media-controls-panel {
   text-align: center;
   margin-top: 20px;
   font-size: 1.1rem;
-  color: #f44336;
+  color: #fff;
   font-weight: bold;
   text-decoration: none;
 }
@@ -1342,76 +1392,6 @@ audio::-webkit-media-controls-panel {
   text-decoration: underline;
 }
 
-
-/* ================= PERFIL MEMBRO PAGE ================= */
-.perfil-membro-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 200px 20px;
-  min-height: 100vh;
-}
-
-.membro {
-  background-color: #DAA520;
-  padding: 30px 25px;
-  border-radius: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-}
-
-.membro-foto {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 50%;
-  border: 3px solid #D2691E;
-  margin-bottom: 20px;
-}
-
-.sem-foto {
-  width: 150px;
-  height: 150px;
-  background-color: #ccc;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  font-size: 1rem;
-  color: #555;
-  border: 3px solid #aaa;
-}
-
-.membro-nome {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 10px;
-}
-
-.membro p {
-  font-size: 1.2rem;
-  color: white;
-  margin: 6px 0;
-}
-
-.perfil-membro-container a {
-  margin-top: 15px;
-  text-decoration: none;
-  padding: 10px 20px;
-  background-color: #D2691E;
-  color: white;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-
-.perfil-membro-container a:hover {
-  background-color: #a94f15;
-}
 
 
 /* ================= EDITAR PERFIL FAMÍLIA PAGE ================= */
@@ -1496,8 +1476,8 @@ audio::-webkit-media-controls-panel {
   display: block;
   text-align: center;
   margin-top: 20px;
-  font-size: 1.1rem;
-  color: #f44336;
+  font-size: 1.2rem;
+  color: #ffffff;
   font-weight: bold;
   text-decoration: none;
 }
@@ -1838,3 +1818,258 @@ audio::-webkit-media-controls-panel {
     width: auto;
   }
 }
+
+
+.editor-inline {
+  background: transparent;
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+
+.editor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.editor-row .editor-label {
+  color: #fff;
+  font-size: 1rem;
+  min-width: 50px;
+}
+
+.editor-row input[type="range"] {
+  flex: 1;
+  height: 6px;
+}
+
+#start-time-editor,
+#end-time-editor {
+  color: white;
+  font-size: 1rem;
+  width: 40px;
+  text-align: right;
+}
+
+.editor-buttons button {
+  padding: 8px 18px;
+  font-size: 1rem;
+}
+
+
+#btnEditar:disabled {
+  background-color: #555 !important;
+  cursor: not-allowed;
+}
+
+
+/* ================= FORMULÁRIO DE CRIAR AUDIOLIVRO ================= */
+.add-audiolivro-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px; /* Espaço para o header fixo */
+  padding-bottom: 40px;
+  min-height: calc(100vh - 140px);
+  background-color: #1C1C1C;
+}
+
+.add-audiolivro-page form {
+  background-color: #DAA520;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: left;
+}
+
+.add-audiolivro-page h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.add-audiolivro-page label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.add-audiolivro-page input[type="text"],
+.add-audiolivro-page input[type="file"],
+.add-audiolivro-page select,
+.add-audiolivro-page textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.add-audiolivro-page input[type="text"]:focus,
+.add-audiolivro-page input[type="file"]:focus,
+.add-audiolivro-page select:focus,
+.add-audiolivro-page textarea:focus {
+  outline: none;
+  border-color: #FF4500;
+}
+
+.add-audiolivro-page .error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.add-audiolivro-page .btn {
+  display: inline-block;
+  width: auto;
+  padding: 12px 24px;
+  margin-top: 20px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.add-audiolivro-page .btn-primary {
+  background-color: #D2691E;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-audiolivro-page .btn-primary:hover {
+  background-color: #cc3700;
+  transform: translateY(-2px);
+}
+
+.add-audiolivro-page .btn-secondary {
+  background-color: red;
+  color: white;
+  border: none;
+  margin-top: 20px;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-audiolivro-page .btn-secondary:hover {
+  background-color: #888;
+  transform: translateY(-2px);
+}
+
+
+
+/* ================= EDITAR AUDIOLIVRO PAGE ================= */
+.edit-audiolivro-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 100px; /* Espaço para o header fixo */
+  padding-bottom: 40px;
+  min-height: calc(100vh - 140px);
+  background-color: #1C1C1C;
+}
+
+.edit-audiolivro-page form {
+  background-color: #DAA520;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: left;
+}
+
+.edit-audiolivro-page h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.edit-audiolivro-page label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.edit-audiolivro-page input[type="text"],
+.edit-audiolivro-page input[type="file"],
+.edit-audiolivro-page select,
+.edit-audiolivro-page textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #FFD700;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+
+.edit-audiolivro-page input[type="text"]:focus,
+.edit-audiolivro-page input[type="file"]:focus,
+.edit-audiolivro-page select:focus,
+.edit-audiolivro-page textarea:focus {
+  outline: none;
+  border-color: #FF4500;
+}
+
+.edit-audiolivro-page .error-message {
+  color: #dc3545;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.edit-audiolivro-page .form-buttons {
+  margin-top: 25px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.edit-audiolivro-page .btn {
+  display: inline-block;
+  width: auto;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-decoration: none;
+  text-align: center;
+}
+
+.edit-audiolivro-page .btn-primary {
+  background-color: #D2691E;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-audiolivro-page .btn-primary:hover {
+  background-color: #cc3700;
+  transform: translateY(-2px);
+}
+
+.edit-audiolivro-page .btn-secondary {
+  background-color: red;
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-audiolivro-page .btn-secondary:hover {
+  background-color: #888;
+  transform: translateY(-2px);
+}
+

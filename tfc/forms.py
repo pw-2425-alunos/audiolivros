@@ -4,8 +4,14 @@ from .models import AudioLivro, Membro, Comentario
 class AudioLivroForm(forms.ModelForm):
     class Meta:
         model = AudioLivro
-        exclude = ['publicado']
-
+        exclude = ['publicado', 'gravado_por']
+        widgets = {
+            'descricao': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Escreva aqui a descrição do audiolivro...',
+                'class': 'form-control'
+            }),
+        }
 
 class ComentarioForm(forms.ModelForm):
     class Meta:

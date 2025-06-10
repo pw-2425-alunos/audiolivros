@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+  <h2>Remover Audiolivro</h2>
+  <p>Tem a certeza que deseja remover o audiolivro "{{ audiolivro.titulo }}"?</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Confirmar</button>
+    <a href="{% url 'tfc:perfilFamilia' %}">Cancelar</a>
+  </form>
+{% endblock %}
