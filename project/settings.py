@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
 
     'tfc',
-    'bootstrap5',
+#    'bootstrap5',
 ]
 
 SITE_ID = 1
