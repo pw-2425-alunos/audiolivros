@@ -7,66 +7,435 @@
 <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
 <div class="add-audiolivro-page">
-  <form action="" method="post" enctype="multipart/form-data">
+  <form action="" method="post" enctype="multipart/form-data" id="audioForm">
     <h2>Criar Novo Audiolivro</h2>
     {% csrf_token %}
 
-    <label for="{{ form.titulo.id_for_label }}">Título *</label>
+    <label for="{{ form.titulo.id_for_label }}">Título <span style="color:red;font-size: 1.5rem;">*</span></label>
     {{ form.titulo }}
     {% if form.titulo.errors %}
       <div class="error-message">{{ form.titulo.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.autor.id_for_label }}">Autor *</label>
+    <label for="{{ form.autor.id_for_label }}">Autor <span style="color:red;font-size: 1.5rem;">*</span></label>
     {{ form.autor }}
     {% if form.autor.errors %}
       <div class="error-message">{{ form.autor.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.capa.id_for_label }}">Capa do Audiolivro *</label>
-    {{ form.capa }}
+    <label for="{{ form.audio.id_for_label }}" style="margin-top: 3ch;">Gravação do livro (gravar ou carregar gravação) <span style="color:red;font-size: 1.5rem;">*</span></label>
+    <div id="audio-comandos" style="display: flex; gap: 10px; align-items: center;">
+      <button type="button" id="btnAbrirGravador" class=" btn btn-secondary btn-gravar-audio" style="background:green; margin-top:0;">🎤 Gravar</button>
+      {{ form.audio }}
+    </div>
+
+    <!-- Gravador HTML SEMPRE PRESENTE (apenas oculto até ser necessário) -->
+    <div id="gravador-container" style="display: none; margin-top: 20px; background: #FFD700; border-radius: 10px; padding: 10px;">
+      <div id="gravador-bloco-inicial" style="text-align:center;">
+        <div id="gravador-visualizer-container" style="display:flex; justify-content:center; align-items:center; margin:12px 0; position:relative;">
+          <canvas id="gravador-visualizer" width="320" height="100" style="background:#032022; border-radius:15px;"></canvas>
+          <span id="gravando-label" style="position:absolute; color:#27aaff; left:0; right:0; margin:auto; text-align:center; font-size:1.1rem; top:7px;">A gravar...</span>
+        </div>
+        <button type="button" id="btnFecharGravador" class="btn btn-secondary" style="background:grey;">Cancelar</button>
+        <button type="button" id="btnIniciarGravacao" class="btn btn-primary" style="margin-left:10px; background:green;"><span style="display:inline-block; width:13px; height:13px; background:#e8413a; border-radius:50%; margin-right:7px; vertical-align:middle;"></span>Iniciar gravação</button>
+      </div>
+      <div id="gravador-bloco-gravacao" style="display:none; text-align:center;">
+        <div id="gravador-visualizer-container" style="display:flex; justify-content:center; align-items:center; margin:12px 0; position:relative;">
+          <canvas id="gravador-visualizer" width="320" height="100" style="background:#032022; border-radius:15px;"></canvas>
+          <span id="gravando-label" style="position:absolute; color:#27aaff; left:0; right:0; margin:auto; text-align:center; font-size:1.1rem; top:7px;">A gravar...</span>
+        </div>
+        <button type="button" id="btnPausarGravacao" class="btn btn-warning" style="margin-right:8px; border:0; background:grey; color:white;">⏸️ Pausar</button>
+        <button type="button" id="btnPararGravacao" class="btn btn-danger" style="background:green;">⏹️ Parar</button>
+      </div>
+      <div id="gravador-bloco-final" style="display:none; text-align:center;">
+        <audio id="gravador-player" controls style="width:320px; margin:10px auto;"></audio>
+        <div>
+          <button type="button" id="btnNovaGravacao" class="btn btn-primary" style="margin-left:7px; background:grey;">Gravar Novo</button>
+          <button type="button" id="btnEditarCorte" class="btn btn-secondary" style="background:grey;">✂️ Editar</button>
+          <button type="button" id="btnGuardarGravacao" class="btn btn-success" style="margin-left:7px; background:green; color:white; border:0;">Guardar</button>
+        </div>
+        <div id="corte-container" style="display:none; margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <label for="{{ form.capa.id_for_label }}" style="margin-top: 4ch;">Capa do Audiolivro (tirar fotografia ou carregar imagem) <span style="color:red;font-size: 1.5rem;">*</span></label>
+    <div id="foto-comandos" style="display: flex; gap: 10px; align-items: center;">
+      <button type="button" id="btnTirarFoto" class="btn btn-secondary" style="background:green; margin-top:0;">📷 &nbsp;Tirar Foto</button>
+      {{ form.capa }}
+    </div>
+    <div id="previewFoto" style="flex-direction: column; margin-top: 10px; background: none; border-radius: 10px; padding: 20px;
+    display: flex; justify-content: center; align-items: center; gap: 10px;"></div>
     {% if form.capa.errors %}
       <div class="error-message">{{ form.capa.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.descricao.id_for_label }}">Descrição (texto) *</label>
+    <label for="{{ form.descricao.id_for_label }}">Escreva uma apresentação do Livro <span style="color:red;font-size: 1.5rem;">*</span></label>
     {{ form.descricao }}
     {% if form.descricao.errors %}
       <div class="error-message">{{ form.descricao.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.link_informacoes.id_for_label }}">Link para mais informações (opcional)</label>
-    {{ form.link_informacoes }}
-    {% if form.link_informacoes.errors %}
-      <div class="error-message">{{ form.link_informacoes.errors|first }}</div>
-    {% endif %}
-
-    <label for="{{ form.descricaoAudio.id_for_label }}">Áudio de Descrição (opcional)</label>
+    <label for="{{ form.descricaoAudio.id_for_label }}">Apresentação áudio do Livro (opcional)</label>
     {{ form.descricaoAudio }}
     {% if form.descricaoAudio.errors %}
       <div class="error-message">{{ form.descricaoAudio.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.categoria.id_for_label }}">Categoria *</label>
+    <label for="{{ form.categoria.id_for_label }}">Categoria <span style="color:red;font-size: 1.5rem;">*</span></label>
     {{ form.categoria }}
     {% if form.categoria.errors %}
       <div class="error-message">{{ form.categoria.errors|first }}</div>
     {% endif %}
 
-    <label for="{{ form.faixa_etaria.id_for_label }}">Faixa Etária *</label>
+{% comment %}
+    <label for="{{ form.faixa_etaria.id_for_label }}">Faixa Etária <span style="color:red;font-size: 1.5rem;">*</span></label>
     {{ form.faixa_etaria }}
     {% if form.faixa_etaria.errors %}
       <div class="error-message">{{ form.faixa_etaria.errors|first }}</div>
     {% endif %}
+{% endcomment %}
 
-    <label for="{{ form.audio.id_for_label }}">Áudio Principal (wav/mp3) *</label>
-    {{ form.audio }}
-    {% if form.audio.errors %}
-      <div class="error-message">{{ form.audio.errors|first }}</div>
+    <label for="{{ form.link_informacoes.id_for_label }}">Link para mais informações (opcional)</label>
+    <div style="width: 100%;">
+      {{ form.link_informacoes }}
+    </div>
+
+    {% if form.link_informacoes.errors %}
+      <div class="error-message">{{ form.link_informacoes.errors|first }}</div>
     {% endif %}
 
-    <button type="submit" class="btn btn-primary">Criar Audiolivro</button>
-    <a href="{% url 'tfc:biblioteca' %}" class="btn btn-secondary" style="margin-left: 10px;">Cancelar</a>
+    <div style="display:flex; flex-direction:row; justify-content:flex-end; gap:10px;">
+        <a href="{% url 'tfc:biblioteca' %}" class="btn btn-secondary" style="margin-left: 10px; background:grey;">Cancelar</a>
+        <button type="submit" class="btn btn-primary" style="background:green;">Criar Audiolivro</button>
+    </div>
+
   </form>
 </div>
+
+<script>
+// ===== TIRAR FOTO =====
+document.getElementById('btnTirarFoto').onclick = function() {
+  document.getElementById('foto-comandos').style.display = 'none';
+  document.getElementById('previewFoto').style.display = 'block';
+  let preview = document.getElementById('previewFoto');
+  preview.style.background = '#DAA520';
+
+  preview.innerHTML = `
+    <video id="video" width="320" height="240" autoplay style="border:2px solid #ccc; border-radius:8px;"></video>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    <div>
+        <button type="button" id="btnFecharPreview" class="btn btn-secondary" style="background:grey;">Cancelar</button>
+        <button type="button" id="captureBtn" class="btn btn-info" style="background:green; color:white; border:0;">📷 Tirar Foto</button>
+    </div>
+  `;
+  const video = document.getElementById('video');
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      video.play();
+    });
+  document.getElementById('captureBtn').onclick = function() {
+    const canvas = document.getElementById('canvas');
+    canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+    video.srcObject.getTracks().forEach(track => track.stop());
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+
+    document.getElementById('captureBtn').style.display = 'none';
+    document.getElementById('previewFoto').style.background = 'none';   // tira fundo amarelo para parecer que acção terminou
+    document.getElementById('foto-comandos').style.display = 'block';
+
+    // Mete blob no input file "capa"
+    canvas.toBlob(function(blob) {
+      const file = new File([blob], "capa_foto.png", { type: "image/png" });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      document.querySelector('input[name="capa"]').files = dataTransfer.files;
+    }, 'image/png');
+  };
+
+  document.getElementById('btnFecharPreview').onclick = function() {
+    document.getElementById('foto-comandos').style.display = 'block';
+    document.getElementById('previewFoto').style.display = 'none';
+  }
+};
+
+// ===== GRAVADOR =====
+document.getElementById('btnAbrirGravador').onclick = function() {
+  let cont = document.getElementById('gravador-container');
+  cont.style.display = 'block';
+  let aud = document.getElementById('audio-comandos');
+  aud.style.display = 'none';
+
+  // Reiniciar estado do gravador
+  document.getElementById('gravador-bloco-inicial').style.display = 'block';
+  document.getElementById('gravador-bloco-gravacao').style.display = 'none';
+  document.getElementById('gravador-bloco-final').style.display = 'none';
+  document.getElementById('corte-container').style.display = 'none';
+
+  // ---- VARS ----
+  let blocoInicial = document.getElementById('gravador-bloco-inicial');
+  let blocoGravacao = document.getElementById('gravador-bloco-gravacao');
+  let blocoFinal = document.getElementById('gravador-bloco-final');
+  let btnIniciar = document.getElementById('btnIniciarGravacao');
+  let btnFechar = document.getElementById('btnFecharGravador');
+  let btnPausar = document.getElementById('btnPausarGravacao');
+  let btnParar = document.getElementById('btnPararGravacao');
+  let btnEditar = document.getElementById('btnEditarCorte');
+  let btnNova = document.getElementById('btnNovaGravacao');
+  let btnGuardar = document.getElementById('btnGuardarGravacao');
+  let gravandoLabel = document.getElementById('gravando-label');
+  let player = document.getElementById('gravador-player');
+  let corteContainer = document.getElementById('corte-container');
+  let canvas = document.getElementById('gravador-visualizer');
+  let ctx = canvas.getContext("2d");
+
+  let mediaRecorder, audioChunks = [], audioBlob = null, audioUrl = null, stream = null;
+  let audioCtx, analyser, dataArray, animationId, sourceNode;
+  let corteInicio = 0, corteFim = 0, audioBuffer = null;
+
+  // ---- Visualizer ----
+  function startVisualizer(str) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    sourceNode = audioCtx.createMediaStreamSource(str);
+    sourceNode.connect(analyser);
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#1374b8";
+      const sliceWidth = canvas.width / dataArray.length;
+      let x = 0;
+      for(let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvas.height / 2;
+        if(i === 0) ctx.moveTo(x, y);
+        else        ctx.lineTo(x, y);
+        x += sliceWidth;
+      }
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+    }
+    draw();
+  }
+  function stopVisualizer() {
+    if (audioCtx) audioCtx.close();
+    if (animationId) cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // ---- Gravação ----
+  btnIniciar.onclick = function() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(str) {
+      stream = str;
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.start();
+
+      blocoInicial.style.display = 'none';
+      blocoGravacao.style.display = 'block';
+      startVisualizer(stream);
+
+      btnPausar.onclick = function() {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.pause();
+          btnPausar.textContent = '▶️ Retomar';
+          gravandoLabel.textContent = "Pausado...";
+        } else if (mediaRecorder.state === 'paused') {
+          mediaRecorder.resume();
+          btnPausar.textContent = '⏸️ Pausar';
+          gravandoLabel.textContent = "A gravar...";
+        }
+      };
+
+      btnParar.onclick = function() {
+        if (mediaRecorder.state === 'paused') {
+          mediaRecorder.resume();
+        }
+        mediaRecorder.stop();
+      };
+
+      mediaRecorder.ondataavailable = function(e) { audioChunks.push(e.data); };
+      mediaRecorder.onstop = function() {
+        stopVisualizer();
+        blocoGravacao.style.display = 'none';
+        blocoFinal.style.display = 'block';
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioUrl = URL.createObjectURL(audioBlob);
+        player.src = audioUrl;
+        player.load();
+        corteInicio = 0;
+        decodeAudio();
+        btnEditar.disabled = false;
+      };
+    });
+  };
+
+  btnFechar.onclick = function() {
+    cont.style.display = "none";
+    let aud = document.getElementById('audio-comandos');
+    aud.style.display = 'block';
+  };
+  btnNova.onclick = function() {
+    blocoFinal.style.display = "none";
+    blocoInicial.style.display = "block";
+    audioBlob = null;
+    audioUrl = null;
+    player.src = '';
+    corteContainer.innerHTML = '';
+  };
+
+  // ---- CORTE / EDIÇÃO (slider) ----
+  async function decodeAudio() {
+    let arrayBuffer = await (await fetch(audioUrl)).arrayBuffer();
+    let ctxTmp = new (window.AudioContext || window.webkitAudioContext)();
+    audioBuffer = await ctxTmp.decodeAudioData(arrayBuffer);
+    corteFim = audioBuffer.duration;
+    ctxTmp.close();
+  }
+  btnEditar.onclick = function() {
+    corteContainer.style.display = "block";
+    corteContainer.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <label>Início: <span id="range-inicio-label">0.00</span>s</label>
+        <input type="range" id="corte-inicio-range" min="0" max="${(corteFim-0.1).toFixed(2)}" step="0.01" value="0">
+        <label>Fim: <span id="range-fim-label">${corteFim.toFixed(2)}</span>s</label>
+        <input type="range" id="corte-fim-range" min="0.1" max="${corteFim.toFixed(2)}" step="0.01" value="${corteFim.toFixed(2)}">
+        <button type="button" id="corte-aplicar" class="btn btn-info" style="margin-top:10px;">Aplicar Corte</button>
+      </div>
+    `;
+    const iniRange = document.getElementById('corte-inicio-range');
+    const fimRange = document.getElementById('corte-fim-range');
+    const iniLabel = document.getElementById('range-inicio-label');
+    const fimLabel = document.getElementById('range-fim-label');
+    iniRange.oninput = function() {
+      iniLabel.textContent = parseFloat(this.value).toFixed(2);
+      if (parseFloat(this.value) >= parseFloat(fimRange.value) - 0.05) {
+        fimRange.value = (parseFloat(this.value) + 0.05).toFixed(2);
+        fimLabel.textContent = fimRange.value;
+      }
+    };
+    fimRange.oninput = function() {
+      fimLabel.textContent = parseFloat(this.value).toFixed(2);
+      if (parseFloat(this.value) <= parseFloat(iniRange.value) + 0.05) {
+        iniRange.value = (parseFloat(this.value) - 0.05).toFixed(2);
+        iniLabel.textContent = iniRange.value;
+      }
+    };
+    document.getElementById('corte-aplicar').onclick = function() {
+      let ini = parseFloat(iniRange.value);
+      let fim = parseFloat(fimRange.value);
+      if (fim <= ini+0.05) return alert('Fim tem de ser maior que início.');
+      corteInicio = ini;
+      corteFim = fim;
+      cortarAudio();
+    };
+  };
+  function cortarAudio() {
+    let sampleRate = audioBuffer.sampleRate;
+    let iniSample = Math.floor(corteInicio * sampleRate);
+    let fimSample = Math.floor(corteFim * sampleRate);
+    let numChan = audioBuffer.numberOfChannels;
+    let novoBuffer = new (window.AudioContext || window.webkitAudioContext)().createBuffer(numChan, fimSample-iniSample, sampleRate);
+    for (let c = 0; c < numChan; c++) {
+      novoBuffer.copyToChannel(audioBuffer.getChannelData(c).slice(iniSample, fimSample), c, 0);
+    }
+    exportBufferToBlob(novoBuffer, function(blob) {
+      audioBlob = blob;
+      audioUrl = URL.createObjectURL(blob);
+      player.src = audioUrl;
+      player.load();
+      corteContainer.innerHTML = `<div style="color:#27aaff;">Corte aplicado!</div>`;
+    });
+  }
+  function exportBufferToBlob(buffer, cb) {
+    let numChan = buffer.numberOfChannels, length = buffer.length;
+    let result = new Float32Array(length * numChan), offset = 0;
+    for (let i = 0; i < length; i++) for (let c = 0; c < numChan; c++) result[offset++] = buffer.getChannelData(c)[i];
+    function floatTo16BitPCM(output, offset, input) {
+      for (let i = 0; i < input.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+    }
+    let bufferWav = new ArrayBuffer(44 + result.length * 2), view = new DataView(bufferWav);
+    function writeString(view, offset, string) { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); }
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + result.length * 2, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChan, true);
+    view.setUint32(24, buffer.sampleRate, true);
+    view.setUint32(28, buffer.sampleRate * numChan * 2, true);
+    view.setUint16(32, numChan * 2, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, result.length * 2, true);
+    floatTo16BitPCM(view, 44, result);
+    cb(new Blob([view], { type: 'audio/wav' }));
+  }
+
+  // Guardar gravação no input file do formulário
+  btnGuardar.onclick = function() {
+    if (!audioBlob) return alert('Nada gravado!');
+    // Converter para WAV se não for WAV ainda
+    if (audioBlob.type !== 'audio/wav') {
+      let blobToWav = function(blob, cb) {
+        let fr = new FileReader();
+        fr.onload = function() {
+          let ctxTmp = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 48000 * 40, 48000);
+          ctxTmp.decodeAudioData(fr.result, function(buffer) {
+            let buffers = [];
+            for (let i = 0; i < buffer.numberOfChannels; i++) buffers.push(buffer.getChannelData(i));
+            let wavBlob = (function encodeWAV(buffers, sampleRate, numChannels) {
+              let length = buffers[0].length;
+              let result = new Float32Array(length * numChannels);
+              let offset = 0;
+              for (let i = 0; i < length; i++) for (let c = 0; c < numChannels; c++) result[offset++] = buffers[c][i];
+              let buffer = new ArrayBuffer(44 + result.length * 2);
+              let view = new DataView(buffer);
+              function floatTo16BitPCM(output, offset, input) {
+                for (let i = 0; i < input.length; i++, offset += 2) {
+                  let s = Math.max(-1, Math.min(1, input[i]));
+                  output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+                }
+              }
+              function writeString(view, offset, string) { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); }
+              writeString(view, 0, 'RIFF'); view.setUint32(4, 36 + result.length * 2, true); writeString(view, 8, 'WAVE');
+              writeString(view, 12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numChannels, true);
+              view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * numChannels * 2, true); view.setUint16(32, numChannels * 2, true);
+              view.setUint16(34, 16, true); writeString(view, 36, 'data'); view.setUint32(40, result.length * 2, true); floatTo16BitPCM(view, 44, result);
+              return new Blob([view], { type: 'audio/wav' });
+            })(buffers, buffer.sampleRate, buffer.numberOfChannels);
+            cb(wavBlob);
+          });
+        };
+        fr.readAsArrayBuffer(blob);
+      };
+      blobToWav(audioBlob, setAudioFile);
+    } else {
+      setAudioFile(audioBlob);
+    }
+  };
+
+  function setAudioFile(blob) {
+    let file = new File([blob], "audiolivro_gravado.wav", { type: "audio/wav" });
+    let dt = new DataTransfer();
+    dt.items.add(file);
+    document.querySelector('input[name="audio"]').files = dt.files;
+    cont.style.display = 'none';
+    let aud = document.getElementById('audio-comandos');
+    aud.style.display = 'block';
+    alert('Áudio guardado como ficheiro audio! ✅');
+  }
+};
+</script>
+
 {% endblock %}

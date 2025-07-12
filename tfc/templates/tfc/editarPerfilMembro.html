@@ -4,11 +4,13 @@
 
 {% block content %}
 {% load static %}
-<div class="edit-membro-page">
+<link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
+<div class="login-page">
+  <div class="form-container">
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <h1>Editar Perfil do Membro</h1>
+        <h3>Editar Membro</h3>
 
         <label for="nome">Nome * </label>
         <input type="text" id="nome" name="nome" value="{{ membro.nome }}" required>
@@ -16,15 +18,15 @@
         <label for="idade">Idade * </label>
         <input type="number" id="idade" name="idade" value="{{ membro.idade }}" required>
 
-        <label for="apresentacao_audio">Apresentação (Áudio) (opcional)</label>
+        <label for="apresentacao_audio">Apresentação (áudio) (opcional)</label>
         <input type="file" id="apresentacao_audio" name="apresentacao_audio" accept="audio/*">
 
         <label for="foto">Fotografia (opcional) </label>
         <input type="file" id="foto" name="foto" accept="image/*">
 
-        <button type="submit">Guardar Alterações</button>
-
-        <a href="{% url 'tfc:perfilFamilia' familia.id %}">Cancelar</a>
+        <input type="submit" value="Guardar Alterações" class="btn-login">
+        <a href="{% url 'tfc:perfilFamilia' familia.id %}" class="btn-login">Cancelar</a>
     </form>
+  </div>
 </div>
 {% endblock %}

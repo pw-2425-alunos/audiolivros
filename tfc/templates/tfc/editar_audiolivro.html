@@ -6,69 +6,78 @@
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
-<div class="edit-audiolivro-page">
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <h2>Editar Audiolivro: {{ audiolivro.titulo }}</h2>
+<div class="register-page">
+  <div class="form-container">
+    <form method="post" enctype="multipart/form-data" id="audioFormEdit">
+      {% csrf_token %}
+      <h3>Editar Audiolivro: {{ audiolivro.titulo }}</h3>
 
-    <label for="id_titulo">Título *</label>
-    {{ form.titulo }}
-    {% if form.titulo.errors %}
-      <div class="error-message">{{ form.titulo.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.titulo.id_for_label }}">Título *</label>
+      {{ form.titulo }}
 
-    <label for="id_autor">Autor *</label>
-    {{ form.autor }}
-    {% if form.autor.errors %}
-      <div class="error-message">{{ form.autor.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.autor.id_for_label }}">Autor *</label>
+      {{ form.autor }}
 
-    <label for="id_capa">Capa (imagem)</label>
-    {{ form.capa }}
-    {% if form.capa.errors %}
-      <div class="error-message">{{ form.capa.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.audio.id_for_label }}">Áudio do livro*</label>
+      {{ form.audio }}
 
-    <label for="id_descricao">Descrição (texto) *</label>
-    {{ form.descricao }}
-    {% if form.descricao.errors %}
-      <div class="error-message">{{ form.descricao.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.capa.id_for_label }}">Capa do Audiolivro *</label>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        {{ form.capa }}
+        <button type="button" id="btnTirarFotoEdit" class="btn btn-secondary">📷 Tirar Foto</button>
+      </div>
 
-    <label for="id_descricaoAudio">Áudio de Descrição (opcional)</label>
-    {{ form.descricaoAudio }}
-    {% if form.descricaoAudio.errors %}
-      <div class="error-message">{{ form.descricaoAudio.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.descricao.id_for_label }}">Descrição (texto) *</label>
+      {{ form.descricao }}
 
-    <label for="id_categoria">Categoria *</label>
-    {{ form.categoria }}
-    {% if form.categoria.errors %}
-      <div class="error-message">{{ form.categoria.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.link_informacoes.id_for_label }}">Link para mais informações (opcional)</label>
+      {{ form.link_informacoes }}
 
-    <label for="id_faixa_etaria">Faixa Etária *</label>
-    {{ form.faixa_etaria }}
-    {% if form.faixa_etaria.errors %}
-      <div class="error-message">{{ form.faixa_etaria.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.descricaoAudio.id_for_label }}">Áudio de Descrição (opcional)</label>
+      {{ form.descricaoAudio }}
 
-    <label for="id_audio">Áudio Principal (wav/mp3)</label>
-    {{ form.audio }}
-    {% if form.audio.errors %}
-      <div class="error-message">{{ form.audio.errors|first }}</div>
-    {% endif %}
+      <label for="{{ form.categoria.id_for_label }}">Categoria *</label>
+      {{ form.categoria }}
 
-    <label for="id_gravado_por">Gravado por (Família)</label>
-    {{ form.gravado_por }}
-    {% if form.gravado_por.errors %}
-      <div class="error-message">{{ form.gravado_por.errors|first }}</div>
-    {% endif %}
+      {% comment %}<label for="{{ form.faixa_etaria.id_for_label }}">Faixa Etária *</label>
+      {{ form.faixa_etaria }}{% endcomment %}
 
-    <div class="form-buttons">
-      <button type="submit" class="btn btn-primary">Guardar Alterações</button>
-      <a href="{% url 'tfc:perfilFamilia' %}" class="btn btn-secondary">Cancelar</a>
-    </div>
-  </form>
+      <input type="submit" value="Guardar Alterações" class="btn-login">
+      <a href="{% url 'tfc:perfilFamilia' %}" class="btn-login logout-btn">Cancelar</a>
+    </form>
+  </div>
 </div>
+
+<script>
+// ===== TIRAR FOTO NO EDITAR =====
+document.getElementById('btnTirarFotoEdit').onclick = function() {
+  let preview = document.getElementById('previewFotoEdit');
+  preview.innerHTML = `
+    <video id="videoEdit" width="320" height="240" autoplay style="border:2px solid #ccc; border-radius:8px;"></video>
+    <br>
+    <button type="button" id="captureBtnEdit" class="btn btn-info">Capturar Foto</button>
+    <canvas id="canvasEdit" width="320" height="240" style="display:none;"></canvas>
+  `;
+  const video = document.getElementById('videoEdit');
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      video.play();
+    });
+  document.getElementById('captureBtnEdit').onclick = function() {
+    const canvas = document.getElementById('canvasEdit');
+    canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+    video.srcObject.getTracks().forEach(track => track.stop());
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    // Mete blob no input file "capa"
+    canvas.toBlob(function(blob) {
+      const file = new File([blob], "capa_foto.png", { type: "image/png" });
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      document.querySelector('input[name="capa"]').files = dataTransfer.files;
+    }, 'image/png');
+  };
+};
+</script>
 {% endblock %}

@@ -27,6 +27,7 @@ urlpatterns = [
     path('audiolivro/<int:audiolivro_id>/comentar', views.criarComentarioInline, name='criarComentarioInline'),
     path('audiolivro/<int:id>/editar/', views.editar_audiolivro, name='editar_audiolivro'),
     path('audiolivro/<int:audiolivro_id>/publicar/', views.publicar_audiolivro_view, name='publicar_audiolivro'),
+    path('audiolivro/<int:audiolivro_id>/despublicar/', views.despublicar_audiolivro_view, name='despublicar_audiolivro'),
     path('audiolivro/criar_inline/', views.criarAudiolivroInline, name='criarAudiolivroInline'),
     path('audiolivro/<int:audiolivro_id>/like/', toggle_like, name='toggle_like'),
     path('audiolivro/<int:audiolivro_id>/bookmark/', views.get_bookmark, name='get_bookmark'),
@@ -34,4 +35,6 @@ urlpatterns = [
     path('comentario/<int:comentario_id>/apagar/', views.apagar_comentario, name='apagar_comentario'),
     path('comentario/<int:comentario_id>/editar/', views.editar_comentario, name='editar_comentario'),
     path('tutorial/', views.tutorial_view, name='tutorial'),
+    path('audiolivro/upload_temp_audio/', views.upload_temp_audio, name='upload_temp_audio'),
+
 ]

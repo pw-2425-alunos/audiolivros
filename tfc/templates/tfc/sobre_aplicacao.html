@@ -2,15 +2,19 @@
 {% load static %}
 
 {% block content %}
+
 <style>
     .sobre-container {
-        max-width: 900px;
+        max-width: 100%;
+        text-align: justify;
         margin: 1rem auto;
-        padding: 2rem 1.5rem;
-        background-color: #000;
-        color: #fff;
+        padding: 1rem 1.2rem;
+        background-color: #0e1d2c;
+        color: #ffcc00;
         border-radius: 15px;
         font-family: 'Quicksand', sans-serif;
+        line-height: 1.6;
+        font-size: 1.1rem;
     }
 
     .sobre-container h1,
@@ -32,23 +36,36 @@
         padding-left: 1.5rem;
     }
 
-    .contato {
-        background-color: #111;
-        border: 1px solid #333;
-        padding: 1rem;
-        border-radius: 12px;
-        margin-top: 2rem;
-        text-align: center;  /* <-- esta linha centra o texto */
+    .contact-section, .creators-section {
+      background-color: #111e2e;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border-radius: 10px;
+      color: #fff;
+      text-align: center;
+      border: 2px solid rgba(255, 255, 255, 0.6);;
     }
 
-    .contato a {
-        color: #FFD700;
-        text-decoration: none;
+    .contact-title, .creators-title {
+      color: #ffcc00;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
     }
 
-    .contato a:hover {
-        text-decoration: underline;
+    .email-list {
+      list-style: none;
+      padding: 0;
     }
+
+    .email-list li {
+      margin: 0.5rem 0;
+    }
+
+    .email-list a {
+      color: #ffffff;
+      text-decoration: underline;
+    }
+
 
     @media (max-width: 768px) {
         .sobre-container {
@@ -70,35 +87,40 @@
     }
 </style>
 
-<div class="sobre-container">
-    <h1>Sobre a Aplicação</h1>
-
-    <h2>Preparados para...</h2><br>
-    <ul>
-        <li>Ouvir audiolivros infantis.</li>
-        <li>Gravar histórias personalizadas diretamente na aplicação.</li>
-        <li>Publicar e partilhar audiolivros com a comunidade.</li>
-        <li>Comentar com áudio, texto ou desenho.</li>
-        <li>Criar perfis familiares com membros e as suas histórias gravadas!</li>
-    </ul><br>
-
+<div class="w-100 px-3 sobre-container">
+        <h1>O que é a AudioLivros?</h1>
     <p>
-        Esta aplicação foi desenvolvida no âmbito do <strong>Trabalho Final de Curso</strong> da Licenciatura em Engenharia Informática e Informática Gestão na <strong>Universidade Lusófona</strong>.
-        A motivação para esta aplicação surgiu através de uma colaboração com a <strong>Associação Nacional de Glaucoma Pediátrico (ANGP)</strong>, que destacou a necessidade de criar uma plataforma acessível e afetiva para as crianças com glaucoma e para as suas famílias.
-        O objetivo principal é proporcionar uma <strong>plataforma comunitária de audiolivros</strong> infantis, permitindo às famílias ouvir, gravar e partilhar histórias. Queremos criar momentos de partilha e união, e promover a <strong>inclusão, acessibilidade e a criatividade</strong>.
+      A <strong>AudioLivros</strong> é uma aplicação inclusiva pensada para crianças com glaucoma e para as suas famílias. Aqui pode ouvir, gravar e partilhar histórias personalizadas, criando momentos mágicos em comunidade.
     </p>
 
+    <h2>🎯 O que pode fazer:</h2>
+    <ul>
+      <li>🎧 Ouvir audiolivros infantis criados por outras famílias.</li>
+      <li>🎙️ Gravar história spersonalizadas diretamente na app.</li>
+      <li>🌍 Publicar e partilhar audiolivros com a comunidade.</li>
+      <li>🗣️ Comentar com áudio, desenho ou texto.</li>
+      <li>👨‍👩‍👧 Criar perfis familiares com as suas gravações preferidas.</li>
+    </ul>
 
-    <div class="contato">
-        <h2>Precisa de ajuda ou quer saber mais?</h2>
-        <p>Contacte-nos:</p>
-        <p>
-            <a href="mailto:carlotapbmontalvao02@gmail.com">carlotapbmontalvao02@gmail.com</a><br>
-            <a href="mailto:lucio.studer@ulusofona.pt">lucio.studer@ulusofona.pt</a><br>
-            <a href="mailto:thomazo2004@gmail.com">thomazo2004@gmail.com</a>
-        </p>
-        <p><strong>Criadores:</strong> Carlota Montalvão & Tomás Silva</p>
-        <p>2025.</p>
-    </div>
+    <h2>🌟 Como surgiu?</h2>
+    <p>
+      Este projeto nasceu foi desenvolvido no âmbito do <strong>Trabalho Final de Curso</strong> na <strong>Universidade Lusófona</strong>, com o apoio da <strong>ANGP</strong> – Associação Nacional de Glaucoma Pediátrico. A missão era clara: criar uma plataforma afetiva e acessível para crianças com glaucoma e para as suas famílias. Queremos criar momentos de partilha e união, e promover a <strong>inclusão, acessibilidade e a criatividade</strong>.
+    </p>
+
+    <section class="contact-section">
+      <h3 class="contact-title">📩 Fale connosco!</h3>
+      <p>Precisa de ajuda ou quer saber mais?</p>
+      <p>Escreva-nos:</p>
+      <ul class="email-list">
+        <li><a href="mailto:carlotapbmontalvao02@gmail.com">carlotapbmontalvao02@gmail.com</a></li>
+        <li><a href="mailto:lucio.studer@ulusofona.pt">lucio.studer@ulusofona.pt</a></li>
+        <li><a href="mailto:thomazo2004@gmail.com">thomazo2004@gmail.com</a></li>
+      </ul>
+    </section>
+
+    <section class="creators-section">
+      <h3 class="creators-title">🎨 Criadores</h3>
+      <p><strong>Carlota Montalvão</strong><br><strong>Tomás Silva</strong><br>2025</p>
+    </section>
 </div>
 {% endblock %}

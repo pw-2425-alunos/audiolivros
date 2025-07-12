@@ -1,40 +1,96 @@
 {% extends "tfc/layout.html" %}
+{% load static %}
 
 {% block title %}Tutorial{% endblock %}
 
 {% block content %}
-{% load static %}
+<style>
+  .tutorial-container {
+    max-width: 100%;
+    text-align: justify;
+    margin: 1rem auto;
+    padding: 1.2rem 1.5rem;
+    background-color: #0e1d2c;
+    color: #ffcc00;
+    border-radius: 15px;
+    font-family: 'Verdana', sans-serif;
+    line-height: 1.6;
+    font-size: 1.1rem;
+  }
+
+  .tutorial-container h2 {
+    color: #FFD700;
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .tutorial-container ol,
+  .tutorial-container ul {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .tutorial-container li {
+    margin-bottom: 0.8rem;
+    color: #fff;
+  }
+
+  .tutorial-container iframe {
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    margin-top: 3rem;
+    border: none;
+  }
+
+
+  @media (max-width: 768px) {
+    .tutorial-container {
+      padding-top: 3rem;
+      padding: 1rem;
+      font-size: 1rem;
+    }
+
+    .tutorial-container h2 {
+      font-size: 1.6rem;
+    }
+
+    .tutorial-container iframe {
+      height: 280px;
+    }
+  }
+</style>
 
 <div class="tutorial-container">
-  {# Seção do vídeo em destaque #}
+  <!-- Seção do vídeo -->
   <div class="tutorial-video">
     <iframe
       width="100%"
       height="450"
       src="{{ video_embed_url }}"
       title="Vídeo de Tutorial"
-      frameborder="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen>
     </iframe>
   </div>
 
+  <!-- Texto tutorial -->
   <div class="tutorial-texto">
-    <h2>Como Utilizar</h2><br>
+    <h2>Como Utilizar</h2>
     <ol>
-      <li> Registe-se primeiro com numa conta familia ou faça login se já tiver conta (com nome de utilizador/senha OU via Google).</li>
-      <li> No menu superior, escolha “Gravar” para:
+      <li>Registe-se com uma conta família ou faça login (nome/senha ou via Google).</li>
+      <li>No menu, escolha “Gravar” para:
         <ul>
-          <li> Gravar um audiolivro em tempo real: clique no botão ▶️ para iniciar, pause/com ▶️/⏸️ e pare com ⏹️.</li>
-          <li> Ou envie um ficheiro já gravado no seu Pc/elemóvel.</li>
+          <li>Gravar um audiolivro em tempo real: use os botões ▶️ / ⏸️ / ⏹️.</li>
+          <li>Ou envie um ficheiro de áudio existente.</li>
         </ul>
       </li>
-      <li> Após gravar, clique em “Criar Audiolivro a partir desta gravação” para criar o audiolivro preencher título, capa, descrição, etc.</li>
-      <li> Após criar, vá sua página de perfil e edite o audiolivro gravado de forma a preencher título, capa, descrição, etc. Quando estiver pronto clique no botão "Publicar"</li>
-      <li> Em “Biblioteca” poderá ver todos os audiolivros disponíveis organizados por categorias.</li>
-      <li> Clique num Audiolivro para ver os seus detalhes: ouvir, avaliar e fazer um comentário em texto ou áudio.</li>
-      <li> Nos detalhes de um audiolivro, o leitor grava automaticamente o seu “bookmark” e retoma a reprodução de onde parou.</li>
-      <li> No perfil familía, pode adicionar/editar/remover membros e ver os audiolivros que sua família gravou.</li>
+      <li>Após gravar, clique em “Criar Audiolivro a partir desta gravação” e preencha as informações.</li>
+      <li>Na sua página de perfil, edite o audiolivro e clique em "Publicar" quando estiver pronto.</li>
+      <li>Em “Biblioteca” pode ver todos os audiolivros disponíveis organizados por categorias.</li>
+      <li>Clique num audiolivro para ouvir, avaliar ou comentar (em texto ou áudio).</li>
+      <li>O leitor grava automaticamente o ponto onde parou para retomar depois.</li>
+      <li>No perfil família pode gerir os membros e ver os audiolivros gravados.</li>
     </ol>
   </div>
 </div>

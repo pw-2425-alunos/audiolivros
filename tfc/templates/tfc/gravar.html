@@ -9,374 +9,302 @@
 <div class="gravar-bg">
   <div class="contentorGravar">
     <h1>Gravar Audiolivro</h1>
-    {% if not request.user.is_authenticated %}
-      <div style="color: white; text-align: center; margin: 30px 0;">
-        <p style="color: white;">
-          Esta funcionalidade só está disponível para utilizadores autenticados.
-        </p>
-        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
-          <a href="{% url 'tfc:login' %}" class="btn-login">
-            Fazer Login
-          </a>
-        </div>
+
+    <!-- BLOCO INICIAL -->
+    <div id="bloco-inicial">
+      <button id="btnToggle" class="btn btn-primary">▶️ Gravar</button>
+      <a href="{% url 'tfc:criarAudiolivro' %}" class="btn btn-secondary" style="margin-left: 10px;">Cancelar</a>
+    </div>
+
+    <!-- BLOCO DE GRAVAÇÃO -->
+    <div id="bloco-gravacao" style="display: none;">
+      <div id="audio-visualizer-container" style="display:none; justify-content:center; align-items:center; margin:20px 0; position:relative;">
+        <canvas id="audio-visualizer" width="320" height="120" style="background:#032022; border-radius:15px;"></canvas>
+        <span id="recording-label" style="display:none; position:absolute; color:#27aaff; left:0; right:0; margin:auto; text-align:center; font-size:1.2rem; top:12px;">
+          A Gravar em processo...
+        </span>
       </div>
-    {% else %}
-      {# Usuário está autenticado: mostra toda a interface de gravação #}
-
-      <p style="color: white;">
-        Nesta página, podes gravar diretamente um audiolivro ou submeter um ficheiro de áudio pré-gravado.
-        Como estás autenticado, tens acesso completo a estas funcionalidades.
-      </p>
-
-      <a href="{% url 'tfc:criarAudiolivro' %}" class="submit-audio-btn mb-3">
-        📁 Submeter áudio existente
-      </a>
-
       <div class="btns-container" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; margin-top: 15px;">
-        <button id="btnToggle" class="btn btn-primary">
-          ▶️ Gravar
-        </button>
-        <button id="btnStop" class="btn btn-danger" disabled>
-          ⏹️ Acabar
-        </button>
+        <button id="btnPausar" class="btn btn-warning">⏸️ Pausar</button>
+        <button id="btnStop" class="btn btn-danger">⏹️ Acabar</button>
       </div>
+    </div>
 
-      <div id="snippetsContainer" style="margin: 10px 0;"></div>
-
-      <audio id="player" controls class="d-block mt-3"></audio>
-
-      <div style="text-align: center; margin-bottom: 12px;">
-        <button id="btnMerge" class="btn btn-info">🔗 Juntar Audios</button>
+    <!-- BLOCO FINAL -->
+    <div id="bloco-final" style="display: none; text-align:center;">
+      <audio id="player" controls class="d-block mt-3" style="width:350px; margin:12px auto;"></audio>
+      <div style="display:flex; gap:12px; justify-content:center; margin-top:20px;">
+        <button id="btnEditar" class="btn btn-secondary" disabled title="Só disponível após gravar">✂️ Editar Gravação</button>
+        <button id="btnNovo" class="btn btn-primary">🔄 Iniciar Nova Gravação</button>
+        <button id="goToCriar" class="btn btn-success" disabled>💾 Guardar</button>
       </div>
-
-      <div id="editorTriggerContainer" style="text-align: center; margin-top: 15px;">
-        <button id="btnEditar" class="btn btn-secondary" disabled title="Só disponível após gravar">
-          ✂️ Editar Gravação
-        </button>
+      <div id="alerta-perda" class="alert alert-warning" style="display:none; margin-top:14px;">
+        Atenção: Vai perder a gravação não guardada! Continuar?
+        <button id="btnConfirmarNova" class="btn btn-sm btn-danger" style="margin-left:10px;">Sim</button>
+        <button id="btnCancelarNova" class="btn btn-sm btn-secondary" style="margin-left:5px;">Não</button>
       </div>
-
-      <div id="editorInline" class="editor-inline" style="display: none; margin-top: 20px;">
-        <div class="editor-row">
-          <span class="editor-label">Início:</span>
-          <span id="start-time-editor">0.00</span> s
-          <input type="range" id="start-slider" min="0" step="0.1" disabled>
-        </div>
-        <div class="editor-row">
-          <span class="editor-label">Fim:</span>
-          <span id="end-time-editor">0.00</span> s
-          <input type="range" id="end-slider" min="0" step="0.1" disabled>
-        </div>
-        <div class="editor-buttons" style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
-          <button id="crop" class="btn btn-primary" disabled>✂️ Cortar</button>
-          <button id="download" class="btn btn-success" disabled>⬇️ Baixar</button>
-          <button id="fecharEditor" class="btn btn-light">✖️ Fechar</button>
-        </div>
-      </div>
-
-      <br>
-
-      <button id="goToCriar" class="btn btn-success mt-3" disabled>
-        Criar Audiolivro a partir desta gravação
-      </button>
-    {% endif %}
+    </div>
   </div>
 </div>
 
 {% if request.user.is_authenticated %}
-  <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Aqui só roda o script se o usuário estiver autenticado
-    const isLogged          = true;
-    const btnToggle         = document.getElementById('btnToggle');
-    const btnStop           = document.getElementById('btnStop');
-    const audioPlayer       = document.getElementById('player');
-    const goToCriar         = document.getElementById('goToCriar');
-    const editorBtn         = document.getElementById('btnEditar');
-    const editorInline      = document.getElementById('editorInline');
-    const fecharEditor      = document.getElementById('fecharEditor');
-    const snippetsContainer = document.getElementById('snippetsContainer');
-    const btnMerge          = document.getElementById('btnMerge');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Elementos
+  const blocoInicial    = document.getElementById('bloco-inicial');
+  const blocoGravacao   = document.getElementById('bloco-gravacao');
+  const blocoFinal      = document.getElementById('bloco-final');
+  const btnToggle       = document.getElementById('btnToggle');
+  const btnPausar       = document.getElementById('btnPausar');
+  const btnStop         = document.getElementById('btnStop');
+  const btnEditar       = document.getElementById('btnEditar');
+  const btnNovo         = document.getElementById('btnNovo');
+  const goToCriar       = document.getElementById('goToCriar');
+  const alertaPerda     = document.getElementById('alerta-perda');
+  const btnConfirmarNova= document.getElementById('btnConfirmarNova');
+  const btnCancelarNova = document.getElementById('btnCancelarNova');
+  const player          = document.getElementById('player');
+  const container       = document.getElementById('audio-visualizer-container');
+  const recordingLabel  = document.getElementById('recording-label');
+  const canvas          = document.getElementById('audio-visualizer');
+  const ctx             = canvas ? canvas.getContext("2d") : null;
 
-    let mediaRecorder;
-    let audioContext   = new (window.AudioContext || window.webkitAudioContext)();
-    let recordings     = [];     // Array de Blobs, cada um é um trecho gravado
-    let mergedBuffer   = null;   // AudioBuffer após unir todos os trechos
-    let audioBuffer    = null;   // AudioBuffer a ser usado para sliders (trim)
-    let croppedBuffer  = null;   // AudioBuffer resultante de corte
+  // Variáveis de gravação
+  let mediaRecorder, audioChunks = [], audioBlob = null, audioUrl = null, stream = null;
+  let audioCtx, analyser, dataArray, animationId, sourceNode;
 
-    const startSlider = document.getElementById('start-slider');
-    const endSlider   = document.getElementById('end-slider');
-    const startLabel  = document.getElementById('start-time-editor');
-    const endLabel    = document.getElementById('end-time-editor');
-    const cropBtn     = document.getElementById('crop');
-    const downloadBtn = document.getElementById('download');
+  // ---- WAV ENCODER ----
+  function encodeWAV(buffers, sampleRate, numChannels) {
+    let length = buffers[0].length;
+    let result = new Float32Array(length * numChannels);
+    let offset = 0;
+    for (let i = 0; i < length; i++) {
+      for (let c = 0; c < numChannels; c++) {
+        result[offset++] = buffers[c][i];
+      }
+    }
+    function floatTo16BitPCM(output, offset, input) {
+      for (let i = 0; i < input.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      }
+    }
+    let buffer = new ArrayBuffer(44 + result.length * 2);
+    let view = new DataView(buffer);
+    function writeString(view, offset, string) {
+      for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+      }
+    }
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + result.length * 2, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * 2, true);
+    view.setUint16(32, numChannels * 2, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, result.length * 2, true);
+    floatTo16BitPCM(view, 44, result);
+    return new Blob([view], { type: 'audio/wav' });
+  }
 
-    // Converte um AudioBuffer em Blob WAV
-    function bufferToBlob(buffer) {
-      const numChan = buffer.numberOfChannels;
-      const length  = buffer.length;
-      const result  = new Float32Array(length * numChan);
-      let idx = 0;
-      for (let i = 0; i < length; i++) {
-        for (let c = 0; c < numChan; c++) {
-          result[idx++] = buffer.getChannelData(c)[i];
+  async function convertBlobToWav(blob) {
+    const arrayBuffer = await blob.arrayBuffer();
+    const context = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 48000 * 40, 48000); // 40s max
+    return new Promise((resolve, reject) => {
+      context.decodeAudioData(arrayBuffer, function(audioBuffer) {
+        let buffers = [];
+        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+          buffers.push(audioBuffer.getChannelData(i));
         }
+        let wavBlob = encodeWAV(buffers, audioBuffer.sampleRate, audioBuffer.numberOfChannels);
+        resolve(wavBlob);
+      }, reject);
+    });
+  }
+
+  // Visualizador
+  function startVisualizer(str) {
+    if (!canvas || !ctx || !container) return;
+    container.style.display = "flex";
+    recordingLabel.style.display = "block";
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 256;
+    sourceNode = audioCtx.createMediaStreamSource(str);
+    sourceNode.connect(analyser);
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+      analyser.getByteTimeDomainData(dataArray);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#1374b8";
+      const sliceWidth = canvas.width / dataArray.length;
+      let x = 0;
+      for(let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvas.height / 2;
+        if(i === 0) ctx.moveTo(x, y);
+        else        ctx.lineTo(x, y);
+        x += sliceWidth;
       }
-      const wavView = encodeWAV(result, buffer.sampleRate, numChan);
-      return new Blob([wavView], { type: 'audio/wav' });
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
     }
+    draw();
+  }
+  function stopVisualizer() {
+    if (!canvas || !ctx || !container) return;
+    container.style.display = "none";
+    recordingLabel.style.display = "none";
+    if (audioCtx) audioCtx.close();
+    if (animationId) cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
 
-    function encodeWAV(samples, sampleRate, numChan) {
-      const bytesPerSample = 2;
-      const blockAlign     = numChan * bytesPerSample;
-      const buffer         = new ArrayBuffer(44 + samples.length * bytesPerSample);
-      const view           = new DataView(buffer);
+  // Estado inicial dos botões
+  btnPausar.style.display = 'none';
+  btnStop.style.display = 'none';
 
-      function writeString(v, off, str) {
-        for (let i = 0; i < str.length; i++) {
-          v.setUint8(off + i, str.charCodeAt(i));
+  // Gravar
+  btnToggle.onclick = function() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function(str) {
+      stream = str;
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.start();
+
+      // UI
+      btnToggle.style.display = 'none';
+      blocoInicial.style.display = 'none';
+      blocoGravacao.style.display = 'block';
+      btnPausar.style.display = 'inline-block';
+      btnStop.style.display = 'inline-block';
+      btnPausar.textContent = '⏸️ Pausar';
+
+      startVisualizer(stream);
+
+      // Pausar/Retomar
+      btnPausar.onclick = function() {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.pause();
+          btnPausar.textContent = '▶️ Retomar';
+        } else if (mediaRecorder.state === 'paused') {
+          mediaRecorder.resume();
+          btnPausar.textContent = '⏸️ Pausar';
         }
-      }
+      };
 
-      writeString(view, 0,   'RIFF');
-      view.setUint32(4,  36 + samples.length * bytesPerSample, true);
-      writeString(view, 8,   'WAVE');
-      writeString(view, 12,  'fmt ');
-      view.setUint32(16, 16, true);
-      view.setUint16(20, 1, true);
-      view.setUint16(22, numChan, true);
-      view.setUint32(24, sampleRate, true);
-      view.setUint32(28, sampleRate * blockAlign, true);
-      view.setUint16(32, blockAlign, true);
-      view.setUint16(34, 16, true);
-      writeString(view, 36, 'data');
-      view.setUint32(40, samples.length * bytesPerSample, true);
-
-      let offset = 44;
-      for (let i = 0; i < samples.length; i++, offset += 2) {
-        let s = Math.max(-1, Math.min(1, samples[i]));
-        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-      }
-      return view;
-    }
-
-    function updateSegmentsCount() {;
-    }
-
-    function appendSnippetToList(blob, index) {
-      const wrapper = document.createElement('div');
-      wrapper.style.marginBottom = '8px';
-      wrapper.style.display      = 'flex';
-      wrapper.style.alignItems   = 'center';
-      wrapper.style.gap          = '8px';
-
-      const label = document.createElement('span');
-      label.textContent = `Audio ${index + 1}:`;
-      label.style.color = 'white';
-
-      const audioEl = document.createElement('audio');
-      audioEl.controls = true;
-      audioEl.src      = URL.createObjectURL(blob);
-      audioEl.style.width = '180px';
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(audioEl);
-      snippetsContainer.appendChild(wrapper);
-    }
-
-    async function mergeRecordings() {
-      if (recordings.length === 0) return null;
-      const buffers = [];
-      for (let blob of recordings) {
-        const arrayBuffer = await blob.arrayBuffer();
-        const decoded     = await audioContext.decodeAudioData(arrayBuffer);
-        buffers.push(decoded);
-      }
-      const numChan = buffers[0].numberOfChannels;
-      const sr      = buffers[0].sampleRate;
-      let totalLen  = buffers.reduce((sum, b) => sum + b.length, 0);
-
-      const merged = audioContext.createBuffer(numChan, totalLen, sr);
-      let offset = 0;
-      for (let b of buffers) {
-        for (let c = 0; c < numChan; c++) {
-          merged.copyToChannel(b.getChannelData(c), c, offset);
+      // Acabar
+      btnStop.onclick = function() {
+        if (mediaRecorder.state === 'paused') {
+          mediaRecorder.resume();
         }
-        offset += b.length;
-      }
-      return merged;
+        mediaRecorder.stop();
+      };
+
+      // Dados áudio
+      mediaRecorder.ondataavailable = function(e) { audioChunks.push(e.data); };
+      mediaRecorder.onstop = function() {
+        stopVisualizer();
+        blocoGravacao.style.display = 'none';
+        blocoFinal.style.display = 'block';
+        btnPausar.style.display = 'none';
+        btnStop.style.display = 'none';
+        btnToggle.style.display = 'inline-block';
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioUrl = URL.createObjectURL(audioBlob);
+        player.src = audioUrl;
+        goToCriar.disabled = false;
+        btnPausar.textContent = '⏸️ Pausar';
+        if (stream) stream.getTracks().forEach(track => track.stop());
+      };
+    });
+  };
+
+  // Nova gravação: alerta de perda
+  btnNovo.onclick = function() {
+    alertaPerda.style.display = 'inline-block';
+  };
+  btnConfirmarNova.onclick = function() {
+    alertaPerda.style.display = 'none';
+    blocoFinal.style.display = 'none';
+    blocoInicial.style.display = 'block';
+    player.src = '';
+    audioBlob = null;
+    audioUrl = null;
+    goToCriar.disabled = true;
+  };
+  btnCancelarNova.onclick = function() {
+    alertaPerda.style.display = 'none';
+  };
+
+  btnEditar.onclick = function() {
+    alert('Função de edição ainda não implementada!');
+  };
+
+  // Guardar gravação (enviar para backend e fallback para criarAudiolivro em caso de erro)
+  goToCriar.onclick = async function() {
+    if (!audioBlob) return alert('Nenhum áudio gravado!');
+    goToCriar.disabled = true;
+    goToCriar.textContent = 'A guardar...';
+
+    // Converter para wav ANTES de enviar!
+    let wavBlob;
+    try {
+      wavBlob = await convertBlobToWav(audioBlob);
+    } catch (err) {
+      alert('Erro ao converter para WAV!');
+      goToCriar.disabled = false;
+      goToCriar.textContent = '💾 Guardar';
+      return;
     }
 
-    function updateSliderLabels() {
-      const s = parseFloat(startSlider.value).toFixed(2);
-      const e = parseFloat(endSlider.value).toFixed(2);
-      startLabel.textContent = s;
-      endLabel.textContent   = e;
-      cropBtn.disabled = (parseFloat(s) >= parseFloat(e));
-    }
-    startSlider.addEventListener('input', updateSliderLabels);
-    endSlider.addEventListener('input', updateSliderLabels);
+    const formData = new FormData();
+    formData.append('audio', wavBlob, 'audiolivro_final.wav');
 
-    function setupRecording() {
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          let audioChunks = [];
-
-          mediaRecorder.addEventListener('dataavailable', e => {
-            audioChunks.push(e.data);
-          });
-
-          mediaRecorder.addEventListener('stop', () => {
-            const blob = new Blob(audioChunks, { type: 'audio/webm' });
-            audioChunks = [];
-            recordings.push(blob);
-
-            appendSnippetToList(blob, recordings.length - 1);
-            updateSegmentsCount();
-
-            audioPlayer.src = URL.createObjectURL(blob);
-            audioPlayer.load();
-
-            goToCriar.disabled = (recordings.length === 0);
-          });
-
-          btnToggle.addEventListener('click', () => {
-            if (mediaRecorder.state === 'inactive') {
-              audioChunks = [];
-              mediaRecorder.start();
-              btnToggle.textContent = '⏸️ Pausar';
-              btnStop.disabled     = false;
-            }
-            else if (mediaRecorder.state === 'recording') {
-              mediaRecorder.pause();
-              btnToggle.textContent = '▶️ Retomar';
-            }
-            else if (mediaRecorder.state === 'paused') {
-              mediaRecorder.resume();
-              btnToggle.textContent = '⏸️ Pausar';
-            }
-          });
-
-          btnStop.addEventListener('click', () => {
-            if (mediaRecorder.state === 'paused') {
-              mediaRecorder.resume();
-            }
-            mediaRecorder.stop();
-            btnToggle.textContent = '▶️ Gravar';
-            btnToggle.disabled    = false;
-            btnStop.disabled      = true;
-          });
-        })
-        .catch(error => {
-          console.error('Erro ao acessar o microfone:', error);
-          alert('É necessário permitir acesso ao microfone para gravar.');
-          btnToggle.disabled = true;
-          btnStop.disabled   = true;
-        });
-    }
-
-    if (navigator.mediaDevices) {
-      setupRecording();
-    }
-
-    btnMerge.addEventListener('click', async () => {
-      if (recordings.length === 0) return;
-
-      mergedBuffer = await mergeRecordings();
-      if (!mergedBuffer) {
-        alert('Não foi possível unir as gravações.');
-        return;
+    fetch("{% url 'tfc:criarAudiolivroInline' %}", {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        window.location.href = data.edit_url;
+      } else {
+        // Fallback: salva URL temporária do áudio no sessionStorage
+        saveAndRedirectToCriarAudiolivro(wavBlob);
       }
-
-      const mergedBlob = bufferToBlob(mergedBuffer);
-      audioPlayer.src = URL.createObjectURL(mergedBlob);
-      audioPlayer.load();
-
-      audioBuffer = mergedBuffer;
-      startSlider.disabled = false;
-      endSlider.disabled   = false;
-      startSlider.max      = mergedBuffer.duration.toFixed(1);
-      endSlider.max        = mergedBuffer.duration.toFixed(1);
-      startSlider.value    = 0;
-      endSlider.value      = mergedBuffer.duration.toFixed(1);
-      updateSliderLabels();
-
-      editorBtn.disabled = false;
+    })
+    .catch(err => {
+      // Fallback: salva URL temporária do áudio no sessionStorage
+      saveAndRedirectToCriarAudiolivro(wavBlob);
     });
+  };
 
-    editorBtn.addEventListener('click', () => {
-      editorInline.style.display = 'block';
-      cropBtn.disabled           = false;
-    });
+  function saveAndRedirectToCriarAudiolivro(wavBlob) {
+    const audioUrl = URL.createObjectURL(wavBlob);
+    sessionStorage.setItem('audio_temp_url', audioUrl);
+    window.location.href = "{% url 'tfc:criarAudiolivro' %}?audio_temp=1";
+  }
 
-    cropBtn.addEventListener('click', () => {
-      const s = parseFloat(startSlider.value);
-      const e = parseFloat(endSlider.value);
-      const sr = audioBuffer.sampleRate;
-      const startSample = Math.floor(s * sr);
-      const endSample   = Math.floor(e * sr);
-      const length      = endSample - startSample;
+  // Reset inicial ao carregar página
+  blocoInicial.style.display = 'block';
+  blocoGravacao.style.display = 'none';
+  blocoFinal.style.display = 'none';
+  goToCriar.disabled = true;
+  btnPausar.style.display = 'none';
+  btnStop.style.display = 'none';
+});
+</script>
 
-      croppedBuffer = audioContext.createBuffer(
-        audioBuffer.numberOfChannels,
-        length,
-        sr
-      );
-      for (let c = 0; c < audioBuffer.numberOfChannels; c++) {
-        const dataChan = audioBuffer.getChannelData(c).slice(startSample, endSample);
-        croppedBuffer.copyToChannel(dataChan, c, 0);
-      }
-
-      const croppedBlob = bufferToBlob(croppedBuffer);
-      const croppedURL  = URL.createObjectURL(croppedBlob);
-      audioPlayer.src   = croppedURL;
-      audioPlayer.play();
-
-      downloadBtn.disabled = false;
-    });
-
-    downloadBtn.addEventListener('click', () => {
-      const blob = bufferToBlob(croppedBuffer || audioBuffer);
-      const link = document.createElement('a');
-      link.href   = URL.createObjectURL(blob);
-      link.download = 'trecho_cortado.wav';
-      link.click();
-    });
-
-    fecharEditor.addEventListener('click', () => {
-      editorInline.style.display = 'none';
-    });
-
-    goToCriar.addEventListener('click', () => {
-      if (!mergedBuffer) {
-        alert('Primeiro junta os trechos usando 🔗 Juntar Audios.');
-        return;
-      }
-      const finalBlob = croppedBuffer ? bufferToBlob(croppedBuffer) : bufferToBlob(mergedBuffer);
-      const formData = new FormData();
-      formData.append('audio', finalBlob, 'audiolivro_final.wav');
-
-      fetch("{% url 'tfc:criarAudiolivroInline' %}", {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          window.location.href = "{% url 'tfc:criarAudiolivroInline' %}?audio="
-                                 + encodeURIComponent(data.audio_url);
-        } else {
-          alert('Áudio enviado. Podes agora completar os detalhes.');
-        }
-      })
-      .catch(err => {
-        console.error('Erro:', err);
-        alert('Ocorreu um erro no envio.');
-      });
-    });
-  });
-  </script>
 {% endif %}
 {% endblock %}

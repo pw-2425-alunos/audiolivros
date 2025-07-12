@@ -17,45 +17,35 @@
     {# === Formulário “tradicional” nome+senha === #}
     <form method="POST" action="{% url 'tfc:login' %}">
       {% csrf_token %}
-      <label for="nome">Nome de Utilizador *</label>
+      <label for="nome">Nome de utilizador *</label>
       <input type="text" id="nome" name="nome" required>
 
     <label for="password">Password *</label>
-    <div style="position: relative; width: 100%;">
-        <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
-        <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe" style="
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            right: 0;
-            height: 100%;
-            width: 60px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 0;
-            margin: 0;
-            color: #555;
-        ">
+    <div class="password-wrapper  wrapper-auth">
+      <input type="password" id="password" name="password" required placeholder="Password">
+      <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe">
         <i id="eye-icon" class="bi bi-eye-slash"></i>
-        </button>
-        <class="signup-prompt"> <a href="{% url 'tfc:recuperar_password' %}"  style="color: white;">Esqueceu-se?</a> </class>
+      </button>
     </div>
 
-      <button type="submit" class="btn btn-primary">Entrar</button>
+    <div class="password-help">
+        <a href="{% url 'tfc:recuperar_password' %}" class="password-recover-link">Esqueceu-se?</a>
+    </div>
+
+      <button type="submit" class="btn-login">Entrar</button>
     </form>
 
-    <p class="signup-prompt">
-    <a>Não tem uma conta?</a> <button><a href="{% url 'tfc:registo' %}"  style="color: white;">Criar Conta</a></button>
-    </p>
-
-    <a href="{% provider_login_url 'google' %}?next=/biblioteca/" class="btn btn-danger">
-        <i class="bi bi-google"></i> Entrar com Google
+    <a href="{% url 'tfc:registo' %}" class="btn-login" style="display: block; text-align: center;">
+        <span class="smaller-text">Não tem uma conta?</span>
+        <span class="highlight-text"> Registe-se</span>
     </a>
-
-
-
+{% comment %}
+    <div class="google-link">
+        <a href="{% provider_login_url 'google' %}?next=/biblioteca/" class="google-login-link">
+        Entrar com Google
+        </a>
+    </div>
+{% endcomment %}
   </div>
 </div>
 

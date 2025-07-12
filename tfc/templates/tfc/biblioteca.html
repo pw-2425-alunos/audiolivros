@@ -44,27 +44,43 @@
             {% for categoria, audiolivros in audiolivros_por_categoria.items %}
                 <div class="categoria">
                     <h2 class="categoria-titulo">{{ categoria }}</h2>
-                    <div class="row row-cols-1 row-cols-md-3 g-4">
-                        {% for audio in audiolivros %}
-                            <div class="col">
-                                <div class="card-biblioteca shadow-sm">
+
+                    <div class="categoria-wrapper">
+                        <button class="scroll-btn left" onclick="scrollCategoria(this, -1)">&#10094;</button>
+
+                        <div class="categoria-roll-lateral">
+                            {% for audio in audiolivros %}
+                                <div class="card-biblioteca card-scroll">
                                     <a href="{% url 'tfc:detalhe_audiolivro' audio.id %}" class="card-link">
                                         <img src="{{ audio.capa.url }}" class="card-img-top" alt="Capa de {{ audio.titulo }}">
                                         <div class="card-body">
                                             <h5 class="card-title">{{ audio.titulo }}</h5>
-                                                <p class="card-text">{{ audio.gravado_por.nome }}</p>
+                                            <p class="card-text"> Gravado pela Família {{ audio.gravado_por.nome }}</p>
                                         </div>
                                     </a>
                                 </div>
-                            </div>
-                        {% empty %}
-                            <p style="color: white;">Nenhum audiolivro encontrado nesta categoria.</p>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
+                        <button class="scroll-btn right" onclick="scrollCategoria(this, 1)">&#10095;</button>
                     </div>
                 </div>
-            {% empty %}
-                <p style="color: white;">Nenhum audiolivro encontrado.</p>
             {% endfor %}
         </div>
     </div>
+
+
+<script>
+  function scrollCategoria(btn, direction) {
+    const wrapper = btn.closest('.categoria-wrapper');
+    const scrollContainer = wrapper.querySelector('.categoria-roll-lateral');
+    const card = scrollContainer.querySelector('.card-biblioteca');
+    const scrollAmount = card ? card.offsetWidth + 20 : 300;
+
+    scrollContainer.scrollBy({
+      left: direction * scrollAmount,
+      behavior: 'smooth'
+    });
+  }
+</script>
+
 {% endblock %}

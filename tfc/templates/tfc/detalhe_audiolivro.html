@@ -1,327 +1,601 @@
 {% extends "tfc/layout.html" %}
+{% load static %}
 
 {% block title %}{{ audiolivro.titulo }}{% endblock %}
 
 {% block content %}
-{% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'tfc/estilos.css' %}">
 
+<!--CARD AUDIOLIVRO-->
+
 <div class="detalhes-audiolivro">
-  <div class="audio-player-card">
-    <div class="card-detalhes shadow-sm">
-      <img src="{{ audiolivro.capa.url }}" class="card-img-top" alt="Capa de {{ audiolivro.titulo }}">
-      <div class="card-body">
-        <p>{{ audiolivro.descricao }}</p><br>
-        <p><strong>Autor:</strong> {{ audiolivro.autor }}</p>
-        <p><strong>Gravado por:</strong>
-        {% if audiolivro.gravado_por %}
-            <a href="{% url 'tfc:perfilFamilia' familia_id=audiolivro.gravado_por.id %}"
-            style="color: #007bff; text-decoration: none; font-weight: 500;">
-            {{ audiolivro.gravado_por.nome }}
-            </a>
-        {% else %}
-            Desconhecido
-        {% endif %}
-        </p><br>
-        {% if audiolivro.audio %}
-        <audio controls class="audio-player"
-            data-id="{{ audiolivro.id }}">
-            <source src="{{ audiolivro.audio.url }}" type="audio/mpeg">
-        </audio>
+  <div class="card-audiolivro shadow-sm">
 
-        {% else %}
-        <p><em>Sem áudio disponível</em></p>
-        {% endif %}
-
-        <div class="like-display">
-            <i class="fa-solid fa-heart"></i>
-            <span id="like-count">{{ like_count }}</span>
-            {% if request.user.is_authenticated %}
-                <button id="btn-like" data-url="{% url 'tfc:toggle_like' audiolivro.id %}" aria-label="Curtir este audiolivro">
-                    {% if liked %}
-                        <i id="icon-like" class="fa-solid fa-heart"></i>
-                    {% else %}
-                        <i id="icon-like" class="fa-solid fa-heart-circle-plus"></i>
-                    {% endif %}
-                </button>
-            {% endif %}
-        </div>
-      </div>
+    <!-- Capa à esquerda -->
+    <div class="capa-container">
+      <img src="{{ audiolivro.capa.url }}" class="card-img" alt="Capa de {{ audiolivro.titulo }}">
     </div>
-  </div>
 
-  <div class="comentarios-container">
-    <h3>Comentários</h3>
-    <form id="comentarioForm" action="{% url 'tfc:criarComentarioInline' audiolivro_id=audiolivro.id %}" method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <input type="file" name="audio" id="audioComentario" style="display: none;">
-      <textarea name="texto" class="comentario-texto" placeholder="Escreva o seu comentário..." rows="3"></textarea>
-      <div class="botoes-gravacao">
-            <button type="button" id="btnGravar" class="botao-gravar"
-                {% if not request.user.is_authenticated %}disabled title="Faz login para gravar"{% endif %}>🎤 Gravar</button>
-            <button type="button" id="btnParar" class="botao-parar" disabled
-                {% if not request.user.is_authenticated %}disabled{% endif %}>⏹️ Parar</button>
-            <button type="submit" class="botao-publicar"
-                {% if not request.user.is_authenticated %}disabled{% endif %}>Publicar</button>
+    <!-- Conteúdo à direita -->
+    <div class="info-container">
+      <h2 class="titulo">{{ audiolivro.titulo }}</h2>
+
+      <div class="tags">
+        <span class="tag">Autor: {{ audiolivro.autor }}</span>
+        <span class="tag">Categoria: {{ audiolivro.categoria }}</span>
+        <span class="tag">Faixa etária: {{ audiolivro.faixa_etaria }}</span>
+
+      </div>
+
+      <p class="autor-info"><strong>Gravado por:</strong>
+        {% if audiolivro.gravado_por %}
+          <a href="{% url 'tfc:perfilFamilia' familia_id=audiolivro.gravado_por.id %}" class="descricao">
+            Família {{ audiolivro.gravado_por.nome }}
+          </a>
+        {% else %}
+          Desconhecido
+        {% endif %}
+      </p>
+
+      <p class="descricao">{{ audiolivro.descricao }}</p>
+
+      {% if audiolivro.audio %}
+        <div class="audio-player">
+          <audio controls>
+            <source src="{{ audiolivro.audio.url }}" type="audio/mpeg">
+          </audio>
         </div>
-        <audio id="playerComentario" controls style="margin-top: 10px; display: none;"></audio>
-    </form>
-     <div class="comentarios">
-  {% for comment in comentarios %}
-  <div class="comentario" style="position: relative;">
-    {# botão de apagar continua visível sempre que for o autor #}
-    {% if request.user.is_authenticated and comment.autor.nome == request.user.username %}
-      <form action="{% url 'tfc:apagar_comentario' comment.id %}"
-            method="POST"
-            style="position: absolute; top: 5px; right: 10px;">
-        {% csrf_token %}
-        <button type="submit"
-                class="botao-apagar-comentario"
-                title="Apagar comentário"
-                onclick="return confirm('Tens a certeza que queres apagar este comentário?')">
-          <i class="bi bi-trash"></i>
-        </button>
-      </form>
-      {# somente se houver texto, mostras o botão de editar #}
-      {% if comment.texto %}
-        <button type="button"
-                class="botao-editar-comentario"
-                data-url="{% url 'tfc:editar_comentario' comment.id %}"
-                style="position: absolute; top: 5px; right: 40px;"
-                title="Editar comentário">
-          ✎
-        </button>
+      {% else %}
+        <p><em>Sem áudio disponível</em></p>
       {% endif %}
-    {% endif %}
 
-    <p class="autor">{{ comment.autor.nome }}</p>
-    {% if comment.texto %}
-      <div class="comentario-texto-static">{{ comment.texto }}</div>
-    {% endif %}
-    {% if comment.audio %}
-      <audio controls>
-        <source src="{{ comment.audio.url }}" type="{{ comment.audio.file.content_type }}"/>
-        O seu navegador não suporta reprodução de áudio.
-      </audio>
-    {% endif %}
-  </div>
-{% endfor %}
+      <div class="like-display">
+        <span id="like-count">{{ like_count }}</span>
+        {% if request.user.is_authenticated %}
+          <button id="btn-like" data-url="{% url 'tfc:toggle_like' audiolivro.id %}" aria-label="Curtir este audiolivro">
+            {% if liked %}
+              <i id="icon-like" class="fa-solid fa-heart"></i>
+            {% else %}
+              <i id="icon-like" class="fa-solid fa-heart-circle-plus"></i>
+            {% endif %}
+          </button>
+         {% else %}
+            <i id="icon-like" class="fa-solid fa-heart-circle-plus"></i>
+        {% endif %}
+      </div>
 
+      <a href="{% url 'tfc:biblioteca' %}" style="display:block; text-align:right; margin-top:10px;">
+    <button type="button" class="botao-comentario botao-terminar"
+            aria-label="Voltar `à biblioteca">
+
+        <i class="fa-solid fa-book"></i><span> Voltar à Biblioteca</span>
+    </button>
+</a>
     </div>
   </div>
 </div>
 
+
+
+<!-- BOTÕES INICIAIS-->
+
+  <div class="comentarios-container">
+      {% if request.user.is_authenticated %}
+    <h3 style="font-size: 2rem; margin-bottom: 25px; margin-top: 30px;">Novo comentário</h3>
+<div class="comentario novo-comentario" style="width:100%; justify-content:center; background-color: #ffe082;">
+        <div class="botoes-comentarios">
+        <button type="button" id="btnEscrever" class="botao-comentario botao-terminar"
+            aria-label="Adicionar comentário em texto" title="Escrever comentário em texto">✍️ Escrever</button>
+
+        <button type="button" id="btnFoto" class="botao-comentario botao-terminar"
+            aria-label="Adicionar comentário com imagem" title="Tirar ou escolher uma imagem">📷 Imagem</button>
+
+        <button type="button" id="btnGravarAudio" class="botao-comentario botao-terminar"
+            aria-label="Adicionar comentário em áudio" title="Gravar comentário de voz">🎤 Gravar</button>
+    </div>
+
+    <form  id="comentarioForm" style="width:100%;display: none;" action="{% url 'tfc:criarComentarioInline' audiolivro_id=audiolivro.id %}"
+        method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+    <div id="secaoComentario">
+
+    <!-- ► Texto -------------------------------------------------------- -->
+        <textarea name="texto" id="campoTexto" class="comentario-texto" placeholder="Escreva o seu comentário..." rows="3" style="display: none;"></textarea>
+
+    <!-- ► Fotografia --------------------------------------------------- -->
+    <div id="secaoFoto" style="display:none; text-align:center;">
+        <button type="button" id="btnFotoToggle" class="botao-gravar">
+            📸 Tirar/Escolher Fotografia
+        </button>
+
+
+      <input type="file"
+             accept="image/*"
+             name="desenho"
+             id="inputFoto"
+             style="display:none;">
+
+      <!-- ✅ AQUI está o container correto -->
+        <div id="imagem-container" class="imagem-container" style="display: none;">
+
+          <img id="preview-img"
+               class="imagem-preview"
+               alt="Pré-visualização"
+               style="display: none;">
+
+          <button type="button" id="btnRemoverFoto" class="botao-terminar" style="margin-top: 12px;">
+            🗑️ Remover Fotografia
+          </button>
+        </div>
+    </div>
+
+    <!-- ► Áudio -------------------------------------------------------- -->
+
+<!-- ► Áudio -------------------------------------------------------- -->
+<div id="secaoAudio" style="display:none; text-align:center;">
+  <div class="audio-container">
+
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom: 12px; margin-top: 12px;">
+      <button type="button" id="btnIniciarRec" class="botao-gravar"
+          aria-label="Iniciar gravação de áudio" title="Começar a gravar">🎙️ Iniciar Gravação</button>
+
+      <button type="button" id="btnPauseRec" class="botao-parar" disabled
+          aria-label="Pausar ou retomar gravação" title="Pausar ou retomar gravação">⏸️ Parar gravação</button>
+
+      <button type="button" id="btnTerminarRec" class="botao-terminar" disabled
+          aria-label="Terminar gravação" title="Terminar e guardar gravação"> Terminar</button>
+
+      <button type="button" id="btnRemoveAudio" class="botao-terminar" style="display:none; margin-top:6px;"
+          aria-label="Remover gravação" title="Remover gravação de áudio"> 🗑 Remover áudio</button>
+    </div>
+
+    <audio id="playerComentario" controls style="display:none; margin-top:10px;"></audio>
+
+    <!-- input oculto onde será colocado o ficheiro gravado -->
+    <input type="file" id="audioComentario" name="audio" style="display:none;">
+  </div>
+</div>
+
+    <div class="botao-container">
+
+
+        <button type="button" id="btnCancelarComentario" class="botao-terminar" style="display: none; background:grey;">
+            Cancelar
+        </button>
+
+        <button type="submit" id="btnPublicar" class="botao-publicar" style="display: none; background:green;" disabled>
+            Publicar
+        </button>
+    </div>
+
+  </div>
+
+</form>
+
+</div>
+{% endif %}
+
+    <div class="comentarios">
+        <h3 style="font-size: 2rem; margin-bottom: 25px; margin-top: 30px;">Comentários</h3>
+  {% for comment in comentarios %}
+    <div class="comentario">
+
+      <div class="comentario-top">
+        <p class="autor mb-0">Família {{ comment.autor.nome }}</p>
+        <p class="data-comentario" style="text-align:right;">{{ comment.data|date:"d M Y H:i" }}</p>
+
+        {% if request.user.is_authenticated and comment.autor.nome == request.user.username %}
+          <div class="menu-wrapper">
+            <button onclick="toggleDropdown(this)" aria-label="Mais opções" title="Editar ou apagar comentário">
+              ⋯
+            </button>
+
+            <div class="menu-dropdown">
+              <form action="{% url 'tfc:apagar_comentario' comment.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="icon-btn apagar" title="Apagar comentário"
+                        onclick="return confirm('Tens a certeza que queres apagar este comentário?')">
+                  <i class="bi bi-trash-fill"></i> Apagar
+                </button>
+              </form>
+
+              {% if comment.texto %}
+                <button type="button" class="icon-btn editar"
+                        data-url="{% url 'tfc:editar_comentario' comment.id %}" title="Editar comentário">
+                  <i class="bi bi-pencil-fill"></i> Editar
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+      {% if comment.texto %}
+        <div class="comentario-texto-static">{{ comment.texto }}</div>
+      {% endif %}
+
+      {% if comment.audio %}
+        <audio controls>
+          <source src="{{ comment.audio.url }}" type="{{ comment.audio.file.content_type }}">
+        </audio>
+      {% endif %}
+
+      {% if comment.desenho %}
+        <img src="{{ comment.desenho.url }}" class="imagem-comment" alt="Imagem do comentário">
+      {% endif %}
+
+    </div>
+  {% endfor %}
+</div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const btnLike = document.getElementById('btn-like');
+
+  function getCSRFToken() {
+    let csrfToken = null;
+    const cookies = document.cookie.split(";");
+    for (let c of cookies) {
+      const trimmed = c.trim();
+      if (trimmed.startsWith("csrftoken=")) {
+        csrfToken = trimmed.substring("csrftoken=".length);
+        break;
+      }
+    }
+    return csrfToken;
+  }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const btnLike = document.getElementById("btn-like");
+  const iconLike = document.getElementById("icon-like");
+  const likeCount = document.getElementById("like-count");
+
   if (btnLike) {
-    const icon    = document.getElementById('icon-like');
-    const countEl = document.getElementById('like-count');
-    btnLike.addEventListener('click', e => {
+    btnLike.addEventListener("click", function (e) {
       e.preventDefault();
-      fetch(btnLike.dataset.url, {
-        method: 'POST',
+      const url = this.dataset.url;
+
+      fetch(url, {
+        method: "POST",
         headers: {
-          'X-CSRFToken': '{{ csrf_token }}',
-          'Accept':      'application/json'
+          "X-CSRFToken": getCSRFToken(),
+          "X-Requested-With": "XMLHttpRequest",
         },
-        credentials: 'same-origin'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.liked) {
+          iconLike.classList.remove("fa-heart-circle-plus");
+          iconLike.classList.add("fa-heart");
+        } else {
+          iconLike.classList.remove("fa-heart");
+          iconLike.classList.add("fa-heart-circle-plus");
+        }
+        likeCount.textContent = data.count;
+      })
+      .catch(err => console.error("Erro ao enviar like:", err));
+    });
+  }
+});
+
+const btnEscrever      = document.getElementById('btnEscrever');
+const btnFoto          = document.getElementById('btnFoto');
+const btnGravarAudioUI = document.getElementById('btnGravarAudio');
+const btnPublicar      = document.getElementById('btnPublicar');
+const btnCancelarComentario = document.getElementById('btnCancelarComentario');
+
+const campoTexto       = document.getElementById('campoTexto');
+const secaoFoto        = document.getElementById('secaoFoto');
+const secaoAudio       = document.getElementById('secaoAudio');
+const secaoComentario  = document.getElementById('comentarioForm');
+
+const btnFotoToggle    = document.getElementById('btnFotoToggle');
+const inputFoto        = document.getElementById('inputFoto');
+const previewImg       = document.getElementById('preview-img');
+const imagemContainer  = document.getElementById('imagem-container');
+let fotoSelecionada    = false;
+
+const btnIniciarRec    = document.getElementById('btnIniciarRec');
+const btnPauseRec      = document.getElementById('btnPauseRec');
+const btnTerminarRec   = document.getElementById('btnTerminarRec');
+const btnRemoveAudio   = document.getElementById('btnRemoveAudio');
+const inputAudioFile   = document.getElementById('audioComentario');
+const playerAudio      = document.getElementById('playerComentario');
+
+let mediaRec = null;
+let recChunks = [];
+let recPaused = false;
+
+function toggleCampo(campo) {
+  // Sempre mostra apenas o campo clicado
+  [campoTexto, secaoFoto, secaoAudio].forEach(b =>
+    b.style.display = (b === campo) ? 'block' : 'none'
+  );
+
+  // Ativa os controles de submissão
+  secaoComentario.style.display = 'block';
+  btnPublicar.style.display = 'inline-block';
+  btnCancelarComentario.style.display = 'inline-block';
+  btnPublicar.disabled = true;
+
+  if (campo === secaoAudio) {
+    [btnIniciarRec, btnPauseRec, btnTerminarRec].forEach(btn => btn.style.display = 'inline-block');
+    btnIniciarRec.disabled = false;
+    btnPauseRec.disabled = true;
+    btnTerminarRec.disabled = true;
+  }
+}
+
+// Mostrar todos os botões de comentário
+function mostrarTodosBotoes() {
+  document.querySelectorAll('.botao-comentario').forEach(btn => btn.style.display = 'inline-block');
+}
+
+// Esconder os botões de comentário que não foram clicados
+function esconderOutrosBotoes(botaoClicado) {
+  document.querySelectorAll('.botao-comentario').forEach(btn => {
+   // if (btn !== botaoClicado)
+    btn.style.display = 'none';
+  });
+}
+
+// Eventos para alternar secções
+btnEscrever.onclick = () => {
+  toggleCampo(campoTexto);
+  esconderOutrosBotoes(btnEscrever);
+};
+
+btnFoto.onclick = () => {
+  toggleCampo(secaoFoto);
+  esconderOutrosBotoes(btnFoto);
+};
+
+btnGravarAudioUI.onclick = () => {
+  toggleCampo(secaoAudio);
+  esconderOutrosBotoes(btnGravarAudioUI);
+};
+
+// Cancelar comentário
+btnCancelarComentario.addEventListener('click', () => {
+  // Resetar visual
+  [campoTexto, secaoFoto, secaoAudio].forEach(sec => sec.style.display = 'none');
+  secaoComentario.style.display = 'none';
+  btnPublicar.style.display = 'none';
+  btnCancelarComentario.style.display = 'none';
+  btnPublicar.disabled = true;
+
+  // Limpar campos
+  campoTexto.value = '';
+  inputFoto.value = '';
+  previewImg.src = '';
+  previewImg.style.display = 'none';
+  imagemContainer.style.display = 'none';
+
+  playerAudio.pause();
+  playerAudio.removeAttribute('src');
+  playerAudio.style.display = 'none';
+  btnRemoveAudio.style.display = 'none';
+  inputAudioFile.value = '';
+
+  // Restaurar botões
+  mostrarTodosBotoes();
+});
+
+// Validação do campo de texto
+campoTexto.addEventListener('input', () =>
+  btnPublicar.disabled = campoTexto.value.trim() === ''
+);
+
+// FOTO
+btnFotoToggle.addEventListener('click', () => {
+  if (!fotoSelecionada) inputFoto.click();
+});
+
+inputFoto.addEventListener('change', () => {
+  const file = inputFoto.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    previewImg.style.display = 'block';
+    imagemContainer.style.display = 'flex';
+    document.getElementById('btnRemoverFoto').style.display = 'inline-block';
+    btnFotoToggle.style.display = 'none';
+    fotoSelecionada = true;
+    btnPublicar.disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('btnRemoverFoto').addEventListener('click', () => {
+  inputFoto.value = '';
+  previewImg.src = '';
+  previewImg.style.display = 'none';
+  imagemContainer.style.display = 'none';
+  document.getElementById('btnRemoverFoto').style.display = 'none';
+  btnFotoToggle.style.display = 'inline-block';
+  fotoSelecionada = false;
+  btnPublicar.disabled = true;
+});
+
+// ÁUDIO
+function setAudioButtons(isRecording) {
+  btnIniciarRec.disabled = isRecording;
+  btnPauseRec.disabled = !isRecording;
+  btnTerminarRec.disabled = !isRecording;
+}
+
+btnIniciarRec.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    let mime = '';
+    const preferidos = ['audio/mp4', 'audio/mpeg', 'audio/webm;codecs=opus'];
+    for (const m of preferidos) {
+      if (MediaRecorder.isTypeSupported(m)) {
+        mime = m;
+        break;
+      }
+    }
+
+    mediaRec = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    recChunks = [];
+    mediaRec.ondataavailable = e => recChunks.push(e.data);
+    mediaRec.start();
+
+    setAudioButtons(true);
+    btnPauseRec.textContent = '⏸️ Parar gravação';
+    recPaused = false;
+  } catch (err) {
+    alert('Erro ao acessar o microfone: ' + err.message);
+  }
+});
+
+btnPauseRec.addEventListener('click', () => {
+  if (!mediaRec) return;
+  if (recPaused) {
+    mediaRec.resume();
+    btnPauseRec.textContent = '⏸️ Parar gravação';
+    recPaused = false;
+  } else {
+    mediaRec.pause();
+    btnPauseRec.textContent = '▶️ Retomar gravação';
+    recPaused = true;
+  }
+});
+
+btnTerminarRec.addEventListener('click', () => {
+  if (!mediaRec) return;
+  mediaRec.stop();
+  btnIniciarRec.style.display = 'none';
+  btnPauseRec.style.display = 'none';
+  btnTerminarRec.style.display = 'none';
+
+  mediaRec.onstop = () => {
+    const mime = mediaRec.mimeType || 'audio/mp4';
+    const ext = mime.includes('mpeg') ? 'mp3' : mime.includes('webm') ? 'webm' : 'm4a';
+    const blob = new Blob(recChunks, { type: mime });
+    const file = new File([blob], `comentario.${ext}`, { type: mime });
+
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    inputAudioFile.files = dt.files;
+
+    playerAudio.src = URL.createObjectURL(blob);
+    playerAudio.style.display = 'block';
+    btnRemoveAudio.style.display = 'inline-block';
+    btnPublicar.disabled = false;
+    setAudioButtons(false);
+  };
+});
+
+btnRemoveAudio.addEventListener('click', () => {
+  playerAudio.pause();
+  playerAudio.removeAttribute('src');
+  playerAudio.style.display = 'none';
+  btnRemoveAudio.style.display = 'none';
+  inputAudioFile.value = '';
+  btnPublicar.disabled = true;
+  btnIniciarRec.style.display = 'inline-block';
+  btnPauseRec.style.display = 'inline-block';
+  btnTerminarRec.style.display = 'inline-block';
+
+  // Reiniciar estado dos botões (como se fosse a primeira vez)
+  btnIniciarRec.disabled = false;
+  btnPauseRec.disabled = true;
+  btnTerminarRec.disabled = true;
+
+  setAudioButtons(false);
+});
+
+function toggleDropdown(button) {
+  const dropdown = button.nextElementSibling;
+  document.querySelectorAll('.menu-dropdown').forEach(menu => {
+    if (menu !== dropdown) menu.style.display = 'none';
+  });
+  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.comentario-top')) {
+    document.querySelectorAll('.menu-dropdown').forEach(menu => menu.style.display = 'none');
+  }
+});
+
+document.querySelectorAll(".icon-btn.editar").forEach(botao => {
+  botao.addEventListener("click", function () {
+    const url = this.dataset.url;
+    const comentarioDiv = this.closest(".comentario");
+    const textoDiv = comentarioDiv.querySelector(".comentario-texto-static");
+    const textoAtual = textoDiv.textContent.trim();
+
+    // Esconder menu ⋯
+    const dropdown = botao.closest('.menu-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+
+    // Criar textarea com destaque visual
+    const textarea = document.createElement("textarea");
+    textarea.value = textoAtual;
+    textarea.className = "textarea-edicao";
+    textarea.rows = 3;
+    textoDiv.replaceWith(textarea);
+
+    // Criar botão "Guardar"
+    const salvarBtn = document.createElement("button");
+    salvarBtn.textContent = "Guardar";
+    salvarBtn.className = "botao-guardar";
+
+    // Criar botão "Cancelar"
+    const cancelarBtn = document.createElement("button");
+    cancelarBtn.textContent = "Cancelar";
+    cancelarBtn.className = "botao-cancelar";
+
+    // Criar wrapper
+    const botoesWrapper = document.createElement("div");
+    botoesWrapper.style.textAlign = "center";
+    botoesWrapper.style.marginTop = "8px";
+    botoesWrapper.appendChild(salvarBtn);
+    botoesWrapper.appendChild(cancelarBtn);
+
+    comentarioDiv.appendChild(botoesWrapper);
+
+    cancelarBtn.onclick = () => {
+      textarea.replaceWith(textoDiv);
+      botoesWrapper.remove();
+    };
+
+    salvarBtn.onclick = () => {
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": getCSRFToken()
+        },
+        body: `texto=${encodeURIComponent(textarea.value)}`
       })
       .then(res => res.json())
       .then(data => {
-        if (data.liked) {
-          icon.classList.replace('fa-heart-circle-plus','fa-heart');
+        if (data.success) {
+          const novoTexto = document.createElement("div");
+          novoTexto.className = "comentario-texto-static";
+          novoTexto.textContent = data.texto;
+          textarea.replaceWith(novoTexto);
+          botoesWrapper.remove();
         } else {
-          icon.classList.replace('fa-heart','fa-heart-circle-plus');
+          alert(data.error || "Erro ao editar.");
         }
-        countEl.textContent = data.count;
-      })
-      .catch(console.error);
-    });
-  }
-
-  let mediaRecorder, audioChunks = [];
-  const btnGravar    = document.getElementById('btnGravar');
-  const btnParar     = document.getElementById('btnParar');
-  const audioInput   = document.getElementById('audioComentario');
-  const commentPlayer = document.getElementById('playerComentario');
-
-  if (navigator.mediaDevices && btnGravar && btnParar && audioInput && commentPlayer) {
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
-
-        mediaRecorder.addEventListener('dataavailable', e => audioChunks.push(e.data));
-
-        mediaRecorder.addEventListener('stop', () => {
-          const blob = new Blob(audioChunks, { type: 'audio/mpeg' });
-          audioChunks = [];
-          const file = new File([blob], 'comentario_audio.mp3', { type: 'audio/mpeg' });
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          audioInput.files = dt.files;
-
-          const url = URL.createObjectURL(blob);
-          commentPlayer.src = url;
-          commentPlayer.style.display = 'block';
-        });
-
-        btnGravar.addEventListener('click', () => {
-          mediaRecorder.start();
-          btnGravar.disabled = true;
-          btnParar.disabled  = false;
-        });
-        btnParar.addEventListener('click', () => {
-          mediaRecorder.stop();
-          btnGravar.disabled = false;
-          btnParar.disabled  = true;
-        });
-      })
-      .catch(err => {
-        console.error('Erro ao acessar microfone:', err);
-        btnGravar.disabled = btnParar.disabled = true;
       });
-  }
-
-  const form = document.getElementById('comentarioForm');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      const texto     = form.querySelector('textarea[name="texto"]').value.trim();
-      const audioFile = form.querySelector('input[name="audio"]').files[0];
-      if (!texto && !audioFile) {
-        e.preventDefault();
-        alert("Por favor, escreve um comentário ou grava um áudio antes de publicar.");
-      }
-    });
-  }
-
-  const audioEl = document.querySelector('.audio-player');
-  if (audioEl) {
-    const bmUrl  = "{% url 'tfc:get_bookmark' audiolivro.id %}";
-    const setUrl = "{% url 'tfc:set_bookmark' audiolivro.id %}";
-
-    // recuperar posição salva
-    fetch(bmUrl, {
-      credentials: 'same-origin',
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.position) {
-        const setPosition = () => {
-          if (audioEl.duration > data.position) {
-            audioEl.currentTime = data.position;
-          }
-          audioEl.removeEventListener('loadedmetadata', setPosition);
-        };
-        if (audioEl.readyState >= 1) {
-          setPosition();
-        } else {
-          audioEl.addEventListener('loadedmetadata', setPosition);
-        }
-      }
-    })
-    .catch(console.error);
-
-    function salvarBookmark() {
-      fetch(setUrl, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'X-CSRFToken':  '{{ csrf_token }}',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          position: audioEl.currentTime.toFixed(1)
-        })
-      }).catch(console.error);
-    }
-
-    let lastSaved = 0;
-    audioEl.addEventListener('timeupdate', () => {
-      const now = Math.floor(audioEl.currentTime);
-      if (now - lastSaved >= 5) {
-        lastSaved = now;
-        salvarBookmark();
-      }
-    });
-    audioEl.addEventListener('pause', salvarBookmark);
-    window.addEventListener('beforeunload', salvarBookmark);
-  }
-
-  document.querySelectorAll('.botao-editar-comentario').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const container = btn.closest('.comentario');
-      const staticDiv = container.querySelector('.comentario-texto-static');
-      if (!staticDiv || container.querySelector('textarea')) return;
-
-      // cria textarea com o texto existente
-      const textarea = document.createElement('textarea');
-      textarea.className = 'comentario-texto';
-      textarea.value = staticDiv.textContent.trim();
-      textarea.style.width = '100%';
-      textarea.rows = 3;
-
-      // botões Salvar e Cancelar
-      const btnSalvar   = document.createElement('button');
-      btnSalvar.textContent = '💾 Guardar';
-      btnSalvar.type        = 'button';
-      btnSalvar.style.margin = '5px';
-
-      const btnCancelar = document.createElement('button');
-      btnCancelar.textContent = '✖️ Cancelar';
-      btnCancelar.type        = 'button';
-      btnCancelar.style.margin = '5px';
-
-      // insere no DOM
-      staticDiv.style.display = 'none';
-      staticDiv.parentNode.insertBefore(textarea, staticDiv.nextSibling);
-      container.appendChild(btnSalvar);
-      container.appendChild(btnCancelar);
-
-      btnCancelar.addEventListener('click', () => {
-        textarea.remove();
-        btnSalvar.remove();
-        btnCancelar.remove();
-        staticDiv.style.display = '';
-      });
-
-      btnSalvar.addEventListener('click', () => {
-        const novoTexto = textarea.value.trim();
-        const original  = staticDiv.textContent.trim();
-
-        if (!novoTexto) {
-          alert('O comentário não pode ficar vazio.');
-          return;
-        }
-        if (novoTexto === original) {
-          btnCancelar.click();
-          return;
-        }
-
-        fetch(btn.dataset.url, {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: new URLSearchParams({ texto: novoTexto })
-        })
-        .then(r => r.json())
-        .then(json => {
-          if (json.success) {
-            staticDiv.textContent = json.texto;
-            btnCancelar.click();
-          } else {
-            alert(json.error || 'Erro ao editar.');
-          }
-        })
-        .catch(() => alert('Erro de rede ao editar o comentário.'));
-      });
-    });
+    };
   });
-
 });
+
+
+// Estado inicial
+[campoTexto, secaoFoto, secaoAudio, secaoComentario].forEach(el => el.style.display = 'none');
+btnPublicar.style.display = 'none';
+btnCancelarComentario.style.display = 'none';
+setAudioButtons(false);
 </script>
+
 {% endblock %}

@@ -1,184 +1,43 @@
-{% extends 'tfc/layout.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ANGP - Início</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="{% static 'tfc/estilos.css' %}" rel="stylesheet">
+</head>
+<body class="home">
 
-{% block title %}
-Bem-vindo à Biblioteca de Audiolivros
-{% endblock %}
+  <!-- Ícones decorativos -->
+  <img src="{% static 'tfc/menino.png' %}" class="decorative-icon menino" alt="Menino a ler com headphones">
+  <img src="{% static 'tfc/menina.png' %}" class="decorative-icon menina" alt="Menina a ler com headphones">
 
-{% block style %}
+  <!-- Título e subtítulo -->
+<div class="main-title">Audiolivros BeeAudio</div>
+  <div class="subtitle">Uma app de todos para todos! <br> Ouve e grava audiolivros personalizados! </div>
 
-  #home-hero {
-    text-align: center;
-    padding: 2rem 1rem;
-    color: #fff;
-  }
-  #home-hero h1 {
-    font-family: 'Oswald', sans-serif;
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    color: #FFD700;
-    text-shadow: 2px 2px 4px #000;
-    padding-top: 25px;
-  }
-
-  /* Abelha animada */
-  .abelha {
-    margin: 2rem auto;
-    width: 60vw;
-    max-width: 250px;
-    aspect-ratio: 1/1;
-    background: linear-gradient(to bottom, yellow 50%, black 50%);
-    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-    animation: abelhaAnimacao 3s infinite ease-in-out;
-  }
-  .abelha::before,
-  .abelha::after {
-    content: "";
-    position: absolute;
-    background-color: #fff;
-    width: 30%;
-    height: 20%;
-    border-radius: 50%;
-    top: 60%;
-  }
-  .abelha::after {
-    right: -15%;
-    transform: rotate(-20deg);
-  }
-  .abelha::before {
-    left: -15%;
-    transform: rotate(20deg);
-  }
-  .cabeca {
-    width: 25%;
-    height: 25%;
-    background-color: #000;
-    border-radius: 50%;
-    position: absolute;
-    top: 20%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .olho {
-    width: 15px;
-    height: 15px;
-    background-color: #fff;
-    border-radius: 50%;
-    margin: 0 4px;
-    position: relative;
-  }
-  .olho::after {
-    content: "";
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    width: 7px;
-    height: 7px;
-    background-color: #000;
-    border-radius: 50%;
-  }
-  .antena {
-    width: 4px;
-    height: 30px;
-    background-color: #000;
-    position: absolute;
-    top: -10%;
-  }
-  .antena.left {
-    left: 15%;
-    transform: rotate(-20deg);
-  }
-  .antena.right {
-    right: 15%;
-    transform: rotate(20deg);
-  }
-  @keyframes abelhaAnimacao {
-    0%   { transform: translateY(0); }
-    50%  { transform: translateY(-10px); }
-    100% { transform: translateY(0); }
-  }
-
-  /* ================== SEÇÃO SOBRE: ALINHAR TUDO AO CENTRO ================== */
-  #home-sobre {
-    text-align: center;    /* garante que todo texto e botões fiquem centralizados */
-    margin: 2rem auto;
-    max-width: 800px;
-  }
-  #home-sobre h2 {
-    font-family: 'Oswald', sans-serif;
-    font-size: 2rem;
-    margin-bottom: 1rem;
-    color: #FFD700;
-  }
-  #home-sobre p {
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    color: #fff;
-  }
-  #home-sobre a.btn-angp {
-    display: inline-block;   /* necessário para que o margin centralize corretamente */
-    font-size: 1rem;
-    color: #000;
-    background-color: #FFD700;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    transition: background-color 0.3s;
-    margin-top: 0.5rem;      /* pequena folga acima do botão */
-  }
-  #home-sobre a.btn-angp:hover {
-    background-color: #FFC107;
-  }
-
-  /* Ajustes responsivos */
-  @media (min-width: 768px) {
-    #home-hero h1 {
-      font-size: 3.5rem;
-    }
-    .btn-biblioteca {
-      font-size: 1.5rem;
-      padding: 1rem 2rem;
-    }
-    #home-sobre h2 {
-      font-size: 2.5rem;
-    }
-    #home-sobre p {
-      font-size: 1.125rem;
-    }
-  }
-{% endblock %}
-
-{% block content %}
-  <section id="home-hero">
-    <h1>Bem-vindos à Aplicação de Audiolivros</h1>
-    <div class="abelha" title="Abelhinha Amiga">
-      <div class="cabeca">
-        <div class="antena left"></div>
-        <div class="antena right"></div>
-        <div class="olho"></div>
-        <div class="olho"></div>
-      </div>
+  <!-- Ícones centrais -->
+  <div class="icon-row">
+    <div class="icon-box">
+      <img src="{% static 'tfc/audiobook.png' %}" alt="Audiobook">
     </div>
-  </section>
+    <div class="icon-box">
+      <img src="{% static 'tfc/abelha.png' %}" alt="Abelha">
+    </div>
+  </div>
 
-  <section id="home-sobre">
-    <h2>Sobre a App</h2>
-    <p>
-      Esta aplicação foi desenvolvida para oferecer um acervo acessível de audiolivros,
-      pensado especialmente para usuários com necessidades visuais. Navegue por diversos gêneros,
-      grave suas leituras preferidas e faça parte da comunidade da Associação Nacional de Glaucoma Pediátrico (ANGP).
-    </p>
-    <a href="https://anglaucomapediatrico.wordpress.com"
-       target="_blank"
-       rel="noopener noreferrer"
-       class="btn-angp">
-      <i class="bi bi-box-arrow-up-right"></i> Visitar a página da ANGP
+  <!-- Botões -->
+  <a href="/biblioteca" class="btn btn-orange">Ir para a Biblioteca</a>
+  <a href="/sobreaplicacao" class="btn btn-yellow">Sobre a App</a>
+
+  <!-- Rodapé -->
+  <footer>
+    <a href="https://angp.pt/" target="_blank" rel="noopener noreferrer">
+      <img src="{% static 'tfc/angp.png' %}" class="logo-footer" alt="Logo ANGP">
     </a>
-  </section>
-{% endblock %}
+  </footer>
+
+</body>
+</html>

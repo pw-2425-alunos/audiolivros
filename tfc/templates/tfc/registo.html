@@ -18,47 +18,35 @@
         <form action="{% url 'tfc:registo' %}" method="post" class="register-form" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <label for="nome">Nome de Utilizador * </label>
+            <label for="nome">Nome de utilizador * </label>
             <input type="text" name="nome" placeholder="Nome da Família" required>
 
             <label for="email">Email * </label>
             <input type="email" name="email" placeholder="Email" required>
 
-            <label for="password">Password * </label>
-            <div style="position: relative; width: 100%;">
-                <input type="password" id="password" name="password" required style="width: 100%; padding-right: 40px;">
-                <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe" style="
-                    position: absolute;
-                    top: 45%;
-                    transform: translateY(-50%);
-                    right: 0;
-                    height: 100%;
-                    width: 60px;
-                    border: none;
-                    background: transparent;
-                    cursor: pointer;
-                    font-size: 18px;
-                    padding: 0;
-                    margin: 0;
-                    color: #555;
-                ">
-                <i id="eye-icon" class="bi bi-eye-slash"></i>
-                </button>
-            </div>
+            <label for="password">Password *</label>
+                <div class="password-wrapper  wrapper-auth">
+                  <input type="password" id="password" name="password" required placeholder="Password">
+                  <button type="button" id="toggle-password" aria-label="Mostrar palavra-passe">
+                    <i id="eye-icon" class="bi bi-eye-slash"></i>
+                  </button>
+                </div>
 
-
-            <label for="foto">Foto da Família (opcional)</label>
+            <label for="foto">Foto da família (opcional)</label>
             <input type="file" name="foto" accept="image/*">
 
             <label for="apresentacao_familia">Apresentação (opcional)</label>
             <input type="file" name="apresentacao_familia" accept="audio/*, video/*, .pdf, .doc, .docx">
 
-            <input type="submit" value="Criar Conta">
+            <button type="submit" class="btn-login">Criar Conta</button>
         </form>
 
-        <p class="login-prompt"> <a>Já tem uma conta? </a></p>
-            <h2><a href="{% url 'tfc:login' %}" style="color: white;">Entrar</a></h2>
-        </p>
+            <div class="google-link">
+                <a href="{% url 'tfc:login' %}" class="google-login-link">
+                <span class="smaller-text">Já tem uma conta?</span>
+                <span class="highlight-text">Entrar</span>
+                </a>
+            </div>
     </div>
 </div>
 
@@ -73,4 +61,5 @@
     eyeIcon.className = isVisible ? "bi bi-eye-slash" : "bi bi-eye";
   });
 </script>
+
 {% endblock %}

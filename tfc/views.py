@@ -9,13 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from collections import defaultdict
 from django.core.files.base import ContentFile
-from urllib.request import urlopen
 from django.http import HttpResponseForbidden
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_http_methods
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
+import uuid
+
 
 @csrf_exempt
 def login_view(request):
@@ -80,7 +81,7 @@ def registo_view(request):
         user = User.objects.create_user(username=nome, email=email, password=password)
         user.save()
 
-        return redirect('tfc:login')
+        return redirect('tfc:perfilFamilia', familia_id=familia.id)
 
     return render(request, 'tfc/registo.html', context)
 
@@ -111,7 +112,7 @@ def recuperar_password_view(request):
         send_mail(
             subject="Recuperação de Password",
             message=f"A sua nova password temporária é: {nova_password}",
-            from_email='carlotapbmontalvao02@gmail.com',
+            from_email='beeaudiolivros@gmail.com',
             recipient_list=[email],
         )
 
@@ -172,7 +173,7 @@ def editar_perfil_familia_view(request):
     familia = get_object_or_404(Familia, nome=request.user.username)
 
     if request.method == "POST":
-        familia.nome = request.POST.get("nome", familia.nome)
+        novo_nome = request.POST.get("nome", familia.nome)
         familia.email = request.POST.get("email", familia.email)
 
         if "foto" in request.FILES:
@@ -181,7 +182,14 @@ def editar_perfil_familia_view(request):
         if "apresentacao_familia" in request.FILES:
             familia.apresentacao_familia = request.FILES["apresentacao_familia"]
 
+        familia.nome = novo_nome
         familia.save()
+
+        # Atualizar também o username do utilizador autenticado
+        user = request.user
+        user.username = novo_nome
+        user.save()
+
         return redirect("tfc:perfilFamilia", familia.id)
 
     return render(request, "tfc/editarPerfilFamilia.html", {"familia": familia})
@@ -333,7 +341,8 @@ def detalhe_audiolivro_view(request, audiolivro_id):
 
 @login_required
 def criarAudiolivro_view(request):
-    audio_url = request.GET.get('audio')
+    audio_temp_url = request.GET.get('audio_temp')
+    form = AudioLivroForm()
 
     if request.method == 'POST':
         form = AudioLivroForm(request.POST, request.FILES)
@@ -344,21 +353,38 @@ def criarAudiolivro_view(request):
             familia_user = get_object_or_404(Familia, nome=request.user.username)
             audiolivro.gravado_por = familia_user
 
-            if audio_url and not request.FILES.get('audio'):
-                audio_filename = os.path.basename(audio_url)
-                response = urlopen(audio_url)
-                audiolivro.audio.save(audio_filename, ContentFile(response.read()), save=False)
-
+            if audio_temp_url and not request.FILES.get('audio'):
+                # Copiar ficheiro do temp para o campo audio
+                filename = os.path.basename(audio_temp_url)
+                temp_path = os.path.join('media', 'temp_audios', filename)
+                if os.path.exists(temp_path):
+                    with open(temp_path, 'rb') as f:
+                        audiolivro.audio.save(filename, ContentFile(f.read()), save=False)
+                    os.remove(temp_path)  # Limpa depois de usar!
             audiolivro.save()
             return redirect('tfc:perfilFamilia')
-    else:
-        form = AudioLivroForm()
-
     context = {
         'form': form,
-        'audio_url': audio_url,
+        'audio_temp_url': audio_temp_url,
     }
     return render(request, 'tfc/criarAudiolivro.html', context)
+
+
+
+@login_required
+def publicar_audiolivro_view(request, audiolivro_id):
+    audiolivro = get_object_or_404(AudioLivro, pk=audiolivro_id, gravado_por__nome=request.user.username)
+    campos_obrigatorios = [audiolivro.titulo, audiolivro.autor, audiolivro.audio, audiolivro.capa,
+                           audiolivro.descricao, audiolivro.categoria,audiolivro.faixa_etaria
+                           ]
+    if all(campos_obrigatorios):
+        audiolivro.publicado = True
+        audiolivro.save()
+        messages.success(request, "Audiolivro publicado com sucesso!")
+    else:
+        messages.error(request, "Para publicar tem de preencher todos os campos obrigatórios.")
+    return redirect('tfc:perfilFamilia')
+
 
 
 def criarComentario_view(request, audiolivro_id):
@@ -394,15 +420,15 @@ def criarAudiolivroInline(request):
         if request.FILES.get('audio'):
             novo_livro.audio = request.FILES.get('audio')
         else:
-            messages.error(request, "É necessário gravar um áudio.")
-            return redirect('tfc:gravar')
+            return JsonResponse({'success': False, 'error': "É necessário gravar um áudio."})
 
         novo_livro.save()
-        messages.success(request, "Gravação criada com sucesso! Complete agora os restantes detalhes.")
+        edit_url = reverse('tfc:editar_audiolivro', kwargs={'id': novo_livro.id})
+        return JsonResponse({'success': True, 'edit_url': edit_url})
 
-        return redirect('tfc:editarAudiolivro', id=novo_livro.id)
+    return JsonResponse({'success': False, 'error': "Método inválido."})
 
-    return redirect('tfc:perfilFamilia')
+
 
 
 @login_required
@@ -448,7 +474,9 @@ def editar_audiolivro(request, id):
         if descricao_audio and not is_audio(descricao_audio):
             form.add_error('descricao_audio', 'O ficheiro deve ser um áudio válido.')
         elif form.is_valid():
-            form.save()
+            audio = form.save(commit=False)
+            audio.gravado_por = Familia.objects.get(nome=request.user.username)
+            audio.save()
             return redirect('tfc:perfilFamilia')
 
     else:
@@ -462,6 +490,18 @@ def publicar_audiolivro_view(request, audiolivro_id):
 
     if request.method == 'POST':
         audiolivro.publicado = True
+        audiolivro.save()
+        return redirect('tfc:perfilFamilia')
+
+    return redirect('tfc:perfilFamilia')
+
+
+@login_required
+def despublicar_audiolivro_view(request, audiolivro_id):
+    audiolivro = get_object_or_404(AudioLivro, id=audiolivro_id)
+
+    if request.method == 'POST':
+        audiolivro.publicado = False
         audiolivro.save()
         return redirect('tfc:perfilFamilia')
 
@@ -554,3 +594,24 @@ def tutorial_view(request):
         'video_embed_url': 'https://www.youtube.com/embed/SEU_VIDEO_ID_AQUI'
     }
     return render(request, 'tfc/tutorial.html', contexto)
+
+
+
+
+@csrf_exempt
+def upload_temp_audio(request):
+    if request.method == "POST":
+        audio_file = request.FILES.get('audio')
+        if not audio_file:
+            return JsonResponse({'success': False, 'error': 'Ficheiro não recebido'})
+        filename = f"temp_{uuid.uuid4()}.webm"
+        temp_path = os.path.join('media', 'temp_audios')
+        os.makedirs(temp_path, exist_ok=True)
+        filepath = os.path.join(temp_path, filename)
+        with open(filepath, 'wb+') as dest:
+            for chunk in audio_file.chunks():
+                dest.write(chunk)
+        audio_url = f"/media/temp_audios/{filename}"
+        return JsonResponse({'success': True, 'audio_url': audio_url})
+    return JsonResponse({'success': False, 'error': 'Método inválido'})
+

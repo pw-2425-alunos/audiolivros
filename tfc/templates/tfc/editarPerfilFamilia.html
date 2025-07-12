@@ -3,36 +3,33 @@
 {% block title %}Editar Perfil{% endblock %}
 
 {% block content %}
-<div class="edit-familia-page">
+{% load static %}
+<div class="register-page">
+  <div class="form-container">
     <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <h1>Editar Perfil da Família</h1>
+      {% csrf_token %}
+      <h3>Editar Perfil</h3>
 
-        <label>
-            <span>Nome *</span>
-            <input type="text" name="nome" value="{{ familia.nome }}">
-        </label>
+      <label for="nome">Nome da família*</label>
+      <input type="text" name="nome" id="nome" value="{{ familia.nome }}" required>
 
-        <label>
-            <span>Email *</span>
-            <input type="email" name="email" value="{{ familia.email }}">
-        </label>
+      <label for="email">Email *</label>
+      <input type="email" name="email" id="email" value="{{ familia.email }}" required>
 
-        <label>
-            <span>Fotografia (opcional) </span>
-            <input type="file" name="foto">
-        </label>
+      <label for="foto">Fotografia (opcional)</label>
+      <input type="file" name="foto" id="foto" accept="image/*">
 
-        <label>
-            <span>Apresentação da Família (Áudio) (opcional):</span>
-            <input type="file" name="apresentacao_familia">
-        </label>
+      <label for="apresentacao_familia">Apresentação da família (áudio) (opcional)</label>
+      <input type="file" name="apresentacao_familia" id="apresentacao_familia" accept="audio/*">
 
-        <a href="{% url 'tfc:alterar_password' %}" class="botao-acao">Deseja alterar a sua password?</a>
+      <div style="margin-top: 15px;">
+        <a href="{% url 'tfc:alterar_password' %}" class="password-recover-link">Deseja alterar a sua password?</a>
+      </div>
 
-        <button type="submit">Guardar Alterações</button>
+      <input type="submit" value="Guardar Alterações" class="btn-login">
 
-        <a href="{% url 'tfc:perfilFamilia' familia.id %}">Cancelar</a>
+      <a href="{% url 'tfc:perfilFamilia' familia.id %}" class="btn-login logout-btn">Cancelar</a>
     </form>
+  </div>
 </div>
 {% endblock %}
